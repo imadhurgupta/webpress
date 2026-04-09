@@ -1,0 +1,195 @@
+/* Pricing Block: Subscription plans */
+function renderPricing(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const cycle = b.billingCycle || 'monthly';
+    const plans = b.plans || [
+        {name: 'Foundations', priceMonthly: '$0', priceYearly: '$0', desc: 'Personal projects & rapid prototyping.', features: ['1 Enterprise Project', 'Atomic Templates', 'Global CDN', 'Community Access'], btn: 'Get Started', active: false, badge: 'Free Forever', url: '#'},
+        {name: 'Professional', priceMonthly: '$49', priceYearly: '$39', desc: 'Complete toolkit for small teams.', features: ['Unlimited Blocks', 'Custom Webhooks', 'Advanced SEO', 'Priority Slack'], btn: 'Upgrade Now', active: true, badge: 'Best Value', url: '#'},
+        {name: 'Enterprise', priceMonthly: '$199', priceYearly: '$159', desc: 'Scale with zero friction & full support.', features: ['Dedicated VM', 'SSO / SAML', 'Global Proxy', 'Managed Success'], btn: 'Contact Sales', active: false, badge: 'Corporate', url: '#'}
+    ];
+    
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, Array.isArray(sitePages) ? sitePages : []) : url;
+
+    let bgStyle = `background:${b.bg||'#f8fafc'};`;
+    if (b.useGradient && b.bg2) bgStyle = `background: linear-gradient(135deg, ${b.bg}, ${b.bg2});`;
+
+    const iconPaths = {
+        check: '<path d="M5 13l4 4L19 7"></path>',
+        star: '<path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.921-.755 1.688-1.54 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.784.57-1.838-.197-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>',
+        arrow: '<path d="M13 7l5 5m0 0l-5 5m5-5H6"></path>'
+    };
+    const iconSvg = `<svg style="width:20px; height:20px; stroke-width:3; fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round;" viewBox="0 0 24 24">${iconPaths[b.iconType||'check']}</svg>`;
+
+    const itemsHtml = plans.map((p, idx) => {
+        const isGlass = b.cardDesign === 'glass';
+        const cardBg = p.active ? (b.activeCardBg || '#0f172a') : (isGlass ? 'rgba(255,255,255,0.03)' : (b.itemBg || '#ffffff'));
+        const cardColor = p.active ? (b.activeCardColor || 'white') : (isGlass ? 'white' : 'var(--text-main)');
+        const glowStyle = (p.active && b.showGlowFeatured) ? `box-shadow: 0 40px 100px -20px ${b.accent||'#6366f1'}60;` : (isGlass ? '' : 'box-shadow: 0 20px 40px -20px rgba(0,0,0,0.06);');
+        
+        let price = cycle === 'monthly' ? (p.priceMonthly || p.price || '$0') : (p.priceYearly || p.price || '$0');
+        let featureList = Array.isArray(p.features) ? p.features : (p.features ? p.features.split(',') : []);
+
+        return `
+            <div style="flex:1; background:${cardBg}; color:${cardColor}; padding:${isSmall?'50px 30px':'70px 50px'}; border-radius:45px; ${glowStyle} border:1px solid ${p.active?('rgba(255,255,255,0.1)'):'rgba(0,0,0,0.04)'}; transform:${(p.active && !isSmall)?'scale(1.05)':'scale(1)'}; z-index:${p.active?10:1}; display:flex; flex-direction:column; min-width:${isSmall ? '100%' : '350px'}; transition:all 0.5s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter:${isGlass?'blur(20px)':'none'}; position:relative;">
+                ${p.badge ? `<div style="position:absolute; top:35px; right:35px; background:${b.accent||'#6366f1'}; color:white; padding:6px 16px; border-radius:20px; font-size:0.75rem; font-weight:900; text-transform:uppercase; letter-spacing:0.05em; box-shadow:0 10px 20px ${b.accent||'#6366f1'}40;">${p.badge}</div>` : ''}
+                <div style="font-size:0.85rem; font-weight:900; text-transform:uppercase; letter-spacing:0.2em; color:${p.active?'#f1f5f9':(b.accent||'#6366f1')}; margin-bottom:25px;">${p.name}</div>
+                <div style="font-size:4.5rem; font-weight:900; margin-bottom:20px; display:flex; align-items:flex-end; gap:8px; line-height:1; letter-spacing:-0.05em;">${price}<span style="font-size:1.1rem; opacity:0.5; font-weight:600; margin-bottom:12px;">/${cycle==='monthly'?'mo':'yr'}</span></div>
+                <p style="font-size:1rem; opacity:0.6; margin-bottom:50px; line-height:1.7; font-weight:500;">${p.desc}</p>
+                <div style="display:flex; flex-direction:column; gap:22px; margin-bottom:60px; flex:1;">
+                    ${featureList.map(f=>`<div style="display:flex; align-items:center; gap:15px; font-size:1.05rem;"><div style="color:${p.active?'#10b981':(b.accent||'#6366f1')}; display:flex; align-items:center;">${iconSvg}</div><span style="opacity:0.8; font-weight:500;">${f}</span></div>`).join('')}
+                </div>
+                <a href="${resolve(p.url||'#')}" onclick="return false;" style="display:block; text-align:center; text-decoration:none; background:${p.active?'white':(b.accent||'#6366f1')}; color:${p.active?'#0f172a':'white'}; border:none; padding:24px; border-radius:20px; font-weight:900; width:100%; cursor:pointer; font-size:1.1rem; transition:all 0.3s; transform:translateY(0); box-shadow:0 20px 40px rgba(0,0,0,0.1); box-sizing:border-box;">${p.btn}</a>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <section style="${bgStyle} padding:${b.pTop||'160px'} 24px ${b.pBottom||'160px'}; transition:all 0.4s; overflow:hidden;">
+            <div style="text-align:center; margin-bottom:100px; max-width:1000px; margin-left:auto; margin-right:auto;">
+                ${b.tagline !== 'none' ? `<div style="display:inline-block; padding:10px 22px; background:${b.accent||'#6366f1'}15; border-radius:100px; color:${b.accent||'#6366f1'}; font-size:0.8rem; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:30px;">${b.tagline||'Strategic Pricing'}</div>` : ''}
+                <h2 style="font-size:${isSmall ? '3rem' : '4rem'}; font-weight:900; margin-bottom:35px; color:${b.useGradient?'white':'var(--text-main)'}; letter-spacing:-0.05em; line-height:1.05; width:100%;">${b.title||'The Best Value for Your Growth'}</h2>
+                ${b.showIntervalToggle !== false ? `
+                <div style="display:flex; justify-content:center; align-items:center; gap:25px; font-weight:800; color:${b.useGradient?'rgba(255,255,255,0.7)':'var(--text-muted)'};">
+                    <span style="${cycle==='monthly'?'color:'+(b.accent||'#6366f1'):''}; transition:0.3s;">Monthly</span>
+                    <div style="width:65px; height:34px; border-radius:40px; background:${b.accent||'#6366f1'}20; position:relative; cursor:pointer;" onclick="updateProp('billingCycle', '${cycle==='monthly'?'yearly':'monthly'}')">
+                        <div style="width:26px; height:26px; border-radius:50%; background:${b.accent||'#6366f1'}; position:absolute; ${cycle==='monthly'?'left:4px':'right:4px'}; top:4px; box-shadow:0 4px 8px rgba(0,0,0,0.2); transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                    </div>
+                    <span style="${cycle==='yearly'?'color:'+(b.accent||'#6366f1'):''}; transition:0.3s;">Yearly <span style="font-size:0.75rem; background:#10b981; color:white; padding:4px 10px; border-radius:30px; margin-left:8px; text-transform:uppercase; letter-spacing:0.05em;">-25%</span></span>
+                </div>` : ''}
+            </div>
+            <div style="display:flex; align-items:stretch; gap:40px; max-width:1280px; margin:0 auto; flex-direction:${isSmall ? 'column' : 'row'}; justify-content:center; padding:0 20px; flex-wrap:wrap;">${itemsHtml}</div>
+            ${b.footerNote ? `<p style="text-align:center; margin-top:60px; opacity:0.6; font-size:1rem; font-weight:500; color:${b.useGradient?'rgba(255,255,255,0.7)':'var(--text-muted)'};">${b.footerNote}</p>` : ''}
+        </section>
+    `;
+}
+
+function updatePricingPlan(idx, key, val) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    if (!b.plans) b.plans = [
+        {name: 'Foundations', priceMonthly: '$0', priceYearly: '$0', desc: 'Personal projects.', features: ['Feature 1'], btn: 'Get Started', active: false, badge: 'Free', url: '#'},
+        {name: 'Pro', priceMonthly: '$49', priceYearly: '$39', desc: 'For small teams.', features: ['Feature 1'], btn: 'Upgrade', active: true, badge: 'Best Value', url: '#'},
+    ];
+    
+    if (key === 'featuresStr') {
+        b.plans[idx]['features'] = val.split(',').map(s => s.trim());
+    } else {
+        b.plans[idx][key] = val;
+    }
+    renderCanvas(); renderProps();
+}
+
+function addPricingPlan() {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    if (!b.plans) b.plans = [];
+    b.plans.push({name: 'New Plan', priceMonthly: '$99', priceYearly: '$79', desc: 'Describe the plan.', features: ['Awesome Feature 1', 'Awesome Feature 2'], btn: 'Buy Now', active: false, badge: '', url: '#'});
+    renderCanvas(); renderProps();
+}
+
+function removePricingPlan(idx) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    b.plans.splice(idx, 1);
+    renderCanvas(); renderProps();
+}
+
+function renderPricingProps(b) {
+    const plans = b.plans || [
+        {name: 'Foundations', priceMonthly: '$0', priceYearly: '$0', desc: 'Personal projects & rapid prototyping.', features: ['1 Enterprise Project', 'Atomic Templates', 'Global CDN', 'Community Access'], btn: 'Get Started', active: false, badge: 'Free Forever', url: '#'},
+        {name: 'Professional', priceMonthly: '$49', priceYearly: '$39', desc: 'Complete toolkit for small teams.', features: ['Unlimited Blocks', 'Custom Webhooks', 'Advanced SEO', 'Priority Slack'], btn: 'Upgrade Now', active: true, badge: 'Best Value', url: '#'},
+        {name: 'Enterprise', priceMonthly: '$199', priceYearly: '$159', desc: 'Scale with zero friction & full support.', features: ['Dedicated VM', 'SSO / SAML', 'Global Proxy', 'Managed Success'], btn: 'Contact Sales', active: false, badge: 'Corporate', url: '#'}
+    ];
+
+    let plansHtml = plans.map((p, i) => {
+        const featureStr = Array.isArray(p.features) ? p.features.join(', ') : (p.features || '');
+        return `
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:12px; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h4 style="margin:0; font-size:0.9rem;">Plan ${i+1}</h4>
+                <div style="display:flex; gap:10px;">
+                    <label style="font-size:0.8rem; display:flex; align-items:center; gap:5px;"><input type="checkbox" ${p.active?'checked':''} onchange="updatePricingPlan(${i}, 'active', this.checked)"> Featured</label>
+                    <button onclick="removePricingPlan(${i})" style="background:transparent; border:none; color:#ef4444; cursor:pointer;">Remove</button>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Name</label><input type="text" class="input" value="${p.name||''}" oninput="updatePricingPlan(${i}, 'name', this.value)"></div>
+                <div class="input-group"><label class="label">Badge</label><input type="text" class="input" value="${p.badge||''}" placeholder="e.g Best Value" oninput="updatePricingPlan(${i}, 'badge', this.value)"></div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Price/Mo</label><input type="text" class="input" value="${p.priceMonthly||p.price||''}" oninput="updatePricingPlan(${i}, 'priceMonthly', this.value)"></div>
+                <div class="input-group"><label class="label">Price/Yr</label><input type="text" class="input" value="${p.priceYearly||p.price||''}" oninput="updatePricingPlan(${i}, 'priceYearly', this.value)"></div>
+            </div>
+            <div class="input-group"><label class="label">Description</label><input type="text" class="input" value="${p.desc||''}" oninput="updatePricingPlan(${i}, 'desc', this.value)"></div>
+            <div class="input-group"><label class="label">Features (comma separated)</label><textarea class="textarea" style="height:60px;" oninput="updatePricingPlan(${i}, 'featuresStr', this.value)">${featureStr}</textarea></div>
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Action Button Label</label><input type="text" class="input" value="${p.btn||''}" oninput="updatePricingPlan(${i}, 'btn', this.value)"></div>
+                <div class="input-group"><label class="label">Button Target URL</label><input type="text" class="input" value="${p.url||'#'}" oninput="updatePricingPlan(${i}, 'url', this.value)"></div>
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="section-title" style="margin-top:0;">Hero Content</div>
+        <div class="input-group"><label class="label">Section Tagline</label><input type="text" class="input" value="${b.tagline||'Strategic Pricing'}" oninput="updateProp('${b.id}', 'tagline', this.value)"></div>
+        <div class="input-group"><label class="label">Section Heading</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('${b.id}', 'title', this.value)"></div>
+        <div class="input-group"><label class="label">Accent Theme</label><input type="color" class="color-input" value="${b.accent||'#6366f1'}" oninput="updateProp('${b.id}', 'accent', this.value)"></div>
+        
+        <div class="section-title">Pricing Cards & Data</div>
+        <div id="pricing-plans-container">
+            ${plansHtml}
+        </div>
+        <button onclick="addPricingPlan()" style="width:100%; padding:12px; background:#f1f5f9; border:1px dashed #cbd5e1; border-radius:12px; font-weight:600; cursor:pointer; color:#475569; margin-bottom:20px;">+ Add Pricing Plan</button>
+
+        <div class="section-title">Billing Logic</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Primary Cycle Overview</label>
+                <select class="select" onchange="updateProp('${b.id}', 'billingCycle', this.value)">
+                    <option value="monthly" ${b.billingCycle==='monthly'?'selected':''}>Monthly Ops</option>
+                    <option value="yearly" ${b.billingCycle==='yearly'?'selected':''}>Annual Sav</option>
+                </select>
+            </div>
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Show Toggle Button</label><input type="checkbox" ${b.showIntervalToggle!==false?'checked':''} onchange="updateProp('${b.id}', 'showIntervalToggle', this.checked)"></div>
+        </div>
+
+        <div class="section-title">Card Geometry</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Visual Design Form</label>
+                <select class="select" onchange="updateProp('${b.id}', 'cardDesign', this.value)">
+                    <option value="solid" ${b.cardDesign==='solid'?'selected':''}>Solid Minimal</option>
+                    <option value="glass" ${b.cardDesign==='glass'?'selected':''}>Modern Glass</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="label">Feature Check Icon</label>
+                <select class="select" onchange="updateProp('${b.id}', 'iconType', this.value)">
+                    <option value="check" ${b.iconType==='check'?'selected':''}>Standard Check</option>
+                    <option value="star" ${b.iconType==='star'?'selected':''}>Premium Star</option>
+                    <option value="arrow" ${b.iconType==='arrow'?'selected':''}>Action Arrow</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Active Hover Glow</label><input type="checkbox" ${b.showGlowFeatured?'checked':''} onchange="updateProp('${b.id}', 'showGlowFeatured', this.checked)"></div>
+            <div class="input-group"><label class="label">Featured Background</label><input type="color" class="color-input" value="${b.activeCardBg||'#0f172a'}" oninput="updateProp('${b.id}', 'activeCardBg', this.value)"></div>
+        </div>
+
+        <div class="section-title">Background Strategy</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">BG Primary Gradient</label><input type="color" class="color-input" value="${b.bg||'#f8fafc'}" oninput="updateProp('${b.id}', 'bg', this.value)"></div>
+            <div class="input-group"><label class="label">BG Accent Gradient</label><input type="color" class="color-input" value="${b.bg2||'#f1f5f9'}" oninput="updateProp('${b.id}', 'bg2', this.value)"></div>
+        </div>
+        <div class="input-group-row"><label class="label">Mix Background Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('${b.id}', 'useGradient', this.checked)"></div>
+
+        <div class="section-title">Legal & Spacing</div>
+        <div class="input-group"><label class="label">Footer Extra Text</label><input type="text" class="input" value="${b.footerNote||''}" oninput="updateProp('${b.id}', 'footerNote', this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Section Top Padding</label><input type="text" class="input" value="${b.pTop||'160px'}" oninput="updateProp('${b.id}', 'pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Section Bottom Padding</label><input type="text" class="input" value="${b.pBottom||'160px'}" oninput="updateProp('${b.id}', 'pBottom', this.value)"></div>
+        </div>
+    `;
+}

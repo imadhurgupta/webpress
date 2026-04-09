@@ -1,0 +1,33 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Blog Engine{% endblock %}
+{% block page_title %}Blog Engine{% endblock %}
+{% block page_subtitle %}Manage chronological posts for {{ site.name }}{% endblock %}
+{% block content %}
+<div class="flex justify-end mb-6">
+    <form method="POST" class="flex gap-3">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="New Post Title..." class="px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-xl text-white outline-none focus:border-indigo-500" required>
+        <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl">Draft Post</button>
+    </form>
+</div>
+
+<div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden mt-6">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-900/50 border-b border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <tr><th class="p-4">Title</th><th class="p-4">Slug</th><th class="p-4">Last Updated</th><th class="p-4">Actions</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-700/50 text-sm font-medium">
+            {% for post in posts %}
+            <tr class="hover:bg-slate-800/60 transition-colors">
+                <td class="p-4 text-white">{{ post.title }}</td>
+                <td class="p-4 text-slate-400 font-mono text-xs">{{ post.slug }}</td>
+                <td class="p-4 text-slate-500">{{ post.updated_at|date:"M d, Y" }}</td>
+                <td class="p-4"><a href="{% url 'builder' site.id post.id %}" class="text-indigo-400 hover:text-white">Edit Content &rarr;</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="p-8 text-center text-slate-500">No blog posts found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

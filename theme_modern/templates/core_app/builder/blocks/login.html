@@ -1,0 +1,261 @@
+function renderLogin(b, isMobile) {
+    const layout = b.layout || 'centered';
+    const p = isMobile ? '30px 15px' : '60px 40px';
+    const alignClass = b.align === 'center' ? 'margin: 0 auto;' : 'margin: 0;';
+    const shadow = b.shadow ? 'box-shadow: 0 10px 25px rgba(0,0,0,0.05);' : '';
+    const br = b.borderRadius !== undefined ? b.borderRadius : 12;
+    const accent = b.accent || '#6366f1';
+    
+    // Check for global auth plugin settings
+    const authPlugin = Object.values(typeof installedPlugins !== 'undefined' ? installedPlugins : {}).find(p => p.active && p.settings && p.settings.google_client_id);
+    const googleUrl = authPlugin ? `/accounts/google/login/?client_id=${authPlugin.settings.google_client_id}` : (b.googleAuthUrl || '#');
+
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, Array.isArray(sitePages) ? sitePages : []) : url;
+
+    let forgotHtml = '';
+    if (b.showForgot !== false) {
+        forgotHtml = `<a href="${resolve(b.forgotUrl || '#')}" style="font-size:0.8rem; color:${accent}; text-decoration:none; font-weight:600;">Forgot password?</a>`;
+    }
+
+    let signupHintHtml = '';
+    if (b.showSignupHint !== false) {
+        signupHintHtml = `<p style="text-align:center; margin-top:24px; font-size:0.85rem; color:${b.textColor||'#6b7280'};">Don&apos;t have an account? <a href="${resolve(b.signupUrl || '#')}" style="color:${accent}; font-weight:600; text-decoration:none;">Sign up</a></p>`;
+    }
+
+    let socialHtml = '';
+    if (b.showGoogle !== false) {
+        socialHtml = `
+            <div style="margin:24px 0; text-align:center; display:flex; align-items:center; gap:12px; color:#94a3b8; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+                OR
+                <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+            </div>
+            <a href="${resolve(googleUrl)}" style="display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; color:#1e293b; font-size:0.9rem; font-weight:700; text-decoration:none; transition:all 0.2s ease; cursor:pointer; font-family:inherit; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Sign in with Google
+            </a>
+        `;
+    }
+
+    const formHtml = `
+        <form onsubmit="return handleAuthAction(event, 'login', '${b.id}')" id="auth-form-${b.id}" style="display:flex; flex-direction:column; gap:16px;">
+            <div>
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:${b.color||'#111827'}; margin-bottom:6px;">Email Address</label>
+                <input type="email" name="email" required placeholder="you@example.com" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid #d1d5db; outline:none; font-family:inherit;">
+            </div>
+            <div>
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:${b.color||'#111827'}; margin-bottom:6px;">Password</label>
+                <input type="password" name="password" required placeholder="••••••••" style="width:100%; padding:10px 14px; border-radius:6px; border:1px solid #d1d5db; outline:none; font-family:inherit;">
+            </div>
+            <div id="auth-error-${b.id}" style="color:#ef4444; font-size:0.8rem; display:none;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.8rem; color:${b.textColor||'#6b7280'}; display:flex; align-items:center; gap:6px;"><input type="checkbox"> Remember me</label>
+                ${forgotHtml}
+            </div>
+            <button type="submit" style="width:100%; padding:12px; margin-top:10px; background:${accent}; color:#ffffff; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-family:inherit;">${b.btnText || 'Login'}</button>
+        </form>
+
+        <script>
+        async function handleAuthAction(e, type, blockId) {
+            e.preventDefault();
+            const form = e.target;
+            const errorDiv = document.getElementById('auth-error-' + blockId);
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            
+            if (typeof window.WebPressAuth === 'undefined') {
+                errorDiv.innerText = "Auth plugin is not active.";
+                errorDiv.style.display = 'block';
+                return false;
+            }
+
+            const data = {
+                email: form.email.value,
+                password: form.password.value
+            };
+            
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            
+            try {
+                const res = await window.WebPressAuth[type](data, '{{ site.id }}');
+                if (res.status === 'ok') {
+                    btn.innerText = "Success!";
+                    setTimeout(() => {
+                        window.location.href = "${resolve(b.redirectUrl || '/index.html')}";
+                    }, 1000);
+                } else {
+                    errorDiv.innerText = res.message || "Invalid credentials";
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            } catch (err) {
+                errorDiv.innerText = "An unexpected error occurred.";
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+            return false;
+        }
+        <\/script>
+        ${socialHtml}
+        ${signupHintHtml}
+    `;
+
+
+    if (layout === 'split' && !isMobile) {
+        return `
+        <section style="display:flex; min-height:600px; background:${b.bg||'#ffffff'}; overflow:hidden;">
+            <div style="flex:1; background:url('${b.imageUrl || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80'}'); background-size:cover; background-position:center;"></div>
+            <div style="width:45%; display:flex; align-items:center; justify-content:center; padding:40px;">
+                <div style="max-width:360px; width:100%;">
+                    <h2 style="font-size:2rem; font-weight:800; color:${b.color||'#111827'}; margin-bottom:8px;">${b.title || 'Welcome Back'}</h2>
+                    <p style="color:${b.textColor||'#6b7280'}; margin-bottom:32px; font-size:1rem;">${b.subtitle || 'Sign in to your account'}</p>
+                    ${formHtml}
+                </div>
+            </div>
+        </section>
+        `;
+    }
+
+    if (layout === 'glass') {
+        return `
+        <section style="padding:${b.vPadding||100}px 20px; background:linear-gradient(135deg, ${accent}cc, ${b.accent2||'#22d3ee'}cc), url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1200&q=80'); background-size:cover; background-blend-mode:overlay; min-height:100vh; display:flex; align-items:center;">
+            <div style="max-width:400px; ${alignClass} background:rgba(255,255,255,0.7); backdrop-filter:blur(20px); border-radius:${br}px; padding:${p}; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.3);">
+                <h2 style="font-size:1.8rem; font-weight:800; color:${b.color||'#111827'}; text-align:center; margin-bottom:8px;">${b.title || 'Welcome Back'}</h2>
+                <p style="text-align:center; color:${b.textColor||'#1e293b'}; margin-bottom:30px; font-size:0.95rem;">${b.subtitle || 'Sign in to your account'}</p>
+                ${formHtml}
+            </div>
+        </section>
+        `;
+    }
+
+    if (layout === 'minimal') {
+        return `
+        <section style="padding:${b.vPadding||80}px 20px; background:${b.bg||'#ffffff'};">
+            <div style="max-width:360px; ${alignClass}">
+                <div style="text-align:center; margin-bottom:40px;">
+                    <div style="width:48px; height:48px; background:${accent}; border-radius:12px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; color:white;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    </div>
+                    <h2 style="font-size:1.8rem; font-weight:800; color:${b.color||'#111827'}; margin-bottom:8px;">${b.title || 'Welcome Back'}</h2>
+                    <p style="color:${b.textColor||'#6b7280'}; font-size:0.95rem;">${b.subtitle || 'Sign in to your account'}</p>
+                </div>
+                ${formHtml}
+            </div>
+        </section>
+        `;
+    }
+
+    // Default: centered card
+    return `
+    <section style="padding:${b.vPadding||60}px 20px; background:${b.bg||'#f9fafb'};">
+        <div style="max-width:400px; ${alignClass} background:${b.cardBg||'#ffffff'}; border-radius:${br}px; padding:${p}; ${shadow} border: 1px solid ${b.borderColor||'rgba(0,0,0,0.05)'};">
+            <h2 style="font-size:1.8rem; font-weight:800; color:${b.color||'#111827'}; text-align:center; margin-bottom:8px;">${b.title || 'Welcome Back'}</h2>
+            <p style="text-align:center; color:${b.textColor||'#6b7280'}; margin-bottom:30px; font-size:0.95rem;">${b.subtitle || 'Sign in to your account'}</p>
+            ${formHtml}
+        </div>
+    </section>
+    `;
+}
+
+function renderLoginProps(b) {
+    return `
+        <div class="section-title">Block Layout</div>
+        <div class="input-group">
+            <label class="label">Layout Type</label>
+            <select class="select" onchange="updateProp('${b.id}', 'layout', this.value)">
+                <option value="centered" ${b.layout==='centered'||!b.layout?'selected':''}>Centered Card</option>
+                <option value="split" ${b.layout==='split'?'selected':''}>Split Screen (Side Image)</option>
+                <option value="minimal" ${b.layout==='minimal'?'selected':''}>Minimalist (No Card)</option>
+                <option value="glass" ${b.layout==='glass'?'selected':''}>Glassmorphism</option>
+            </select>
+        </div>
+        ${b.layout === 'split' ? `<div class="input-group"><label class="label">Side Image URL</label><input type="text" class="input" placeholder="https://..." value="${b.imageUrl||''}" oninput="updateProp('${b.id}', 'imageUrl', this.value)"></div>` : ''}
+        ${b.layout === 'glass' ? `<div class="input-group"><label class="label">Accent Color 2</label><input type="color" class="color-input" value="${b.accent2||'#22d3ee'}" oninput="updateProp('${b.id}', 'accent2', this.value)"></div>` : ''}
+
+        <div class="section-title">Form Configuration</div>
+        <div class="input-group"><label class="label">API Endpoint</label><input type="text" class="input" placeholder="/api/login" value="${b.apiEndpoint||''}" oninput="updateProp('${b.id}', 'apiEndpoint', this.value)"></div>
+        <div class="input-group">
+            <label class="label">Redirect After Login</label>
+            <select class="select" style="margin-bottom:8px;" onchange="updateProp('${b.id}', 'redirectUrl', this.value); renderProps();">
+                <option value="">Select Page</option>
+                ${typeof sitePages !== 'undefined' ? sitePages.map(p => {
+                    const pageUrl = p.is_home ? '/' : '/' + p.slug;
+                    return `<option value="${pageUrl}" ${b.redirectUrl === pageUrl ? 'selected' : ''}>${p.title}</option>`;
+                }).join('') : ''}
+            </select>
+            <input type="text" class="input" placeholder="/dashboard" value="${b.redirectUrl||''}" oninput="updateProp('${b.id}', 'redirectUrl', this.value)">
+        </div>
+        <div class="input-group-row">
+            <label class="label">Show Social Login</label>
+            <input type="checkbox" onchange="updateProp('${b.id}', 'showGoogle', this.checked)" ${b.showGoogle!==false?'checked':''}>
+        </div>
+        
+        ${(() => {
+            const authPlugin = Object.values(typeof installedPlugins !== 'undefined' ? installedPlugins : {}).find(p => p.active && p.settings && p.settings.google_client_id);
+            if (authPlugin && b.showGoogle !== false) {
+                return `
+                    <div style="margin: 10px 0; padding: 12px; background: var(--violet-dim); border-radius: 8px; border: 1px solid var(--violet); display: flex; gap: 10px; align-items: start;">
+                        <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--violet); margin-top:2px;"></i>
+                        <div style="font-size: 11px; color: var(--violet); line-height: 1.4;">
+                            <strong style="display:block; margin-bottom:2px;">Auth Plugin Active</strong>
+                            Automatically using your Google OAuth configuration for sign-in.
+                        </div>
+                    </div>
+                `;
+            } else if (b.showGoogle !== false) {
+                return `
+                    <div class="input-group" style="padding-left:10px;">
+                        <label class="label">Google Auth URL</label>
+                        <input type="text" class="input" placeholder="/accounts/google/login/" value="${b.googleAuthUrl||''}" oninput="updateProp('${b.id}', 'googleAuthUrl', this.value)">
+                    </div>
+                `;
+            }
+            return '';
+        })()}
+
+        <div class="section-title">Block Content</div>
+        <div class="input-group"><label class="label">Heading Title</label><input type="text" class="input" value="${b.title||'Welcome Back'}" oninput="updateProp('${b.id}', 'title', this.value)"></div>
+        <div class="input-group"><label class="label">Subtitle</label><input type="text" class="input" value="${b.subtitle||'Sign in to your account'}" oninput="updateProp('${b.id}', 'subtitle', this.value)"></div>
+        <div class="input-group"><label class="label">Button Text</label><input type="text" class="input" value="${b.btnText||'Login'}" oninput="updateProp('${b.id}', 'btnText', this.value)"></div>
+        <div class="input-group-row"><label class="label">Show Forgot Password</label><input type="checkbox" onchange="updateProp('${b.id}', 'showForgot', this.checked)" ${b.showForgot!==false?'checked':''}></div>
+        <div class="input-group" style="padding-left:10px;"><label class="label">Forgot Pwd Link</label><input type="text" class="input" placeholder="forgot-password" value="${b.forgotUrl||''}" oninput="updateProp('${b.id}', 'forgotUrl', this.value)"></div>
+        <div class="input-group-row"><label class="label">Show Signup Hint</label><input type="checkbox" onchange="updateProp('${b.id}', 'showSignupHint', this.checked)" ${b.showSignupHint!==false?'checked':''}></div>
+        <div class="input-group" style="padding-left:10px;">
+            <label class="label">Signup Page</label>
+            <select class="select" style="margin-bottom:8px;" onchange="updateProp('${b.id}', 'signupUrl', this.value); renderProps();">
+                <option value="">Select Page</option>
+                ${typeof sitePages !== 'undefined' ? sitePages.map(p => {
+                    const pageUrl = p.is_home ? '/' : '/' + p.slug;
+                    return `<option value="${pageUrl}" ${b.signupUrl === pageUrl ? 'selected' : ''}>${p.title}</option>`;
+                }).join('') : ''}
+            </select>
+            <input type="text" class="input" placeholder="signup" value="${b.signupUrl||''}" oninput="updateProp('${b.id}', 'signupUrl', this.value)">
+        </div>
+        
+        <div class="section-title">Design</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Section Bg</label><input type="color" class="color-input" value="${b.bg||'#f9fafb'}" oninput="updateProp('${b.id}', 'bg', this.value)"></div>
+            <div class="input-group"><label class="label">Card Bg</label><input type="color" class="color-input" value="${b.cardBg||'#ffffff'}" oninput="updateProp('${b.id}', 'cardBg', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Primary Color</label><input type="color" class="color-input" value="${b.accent||'#6366f1'}" oninput="updateProp('${b.id}', 'accent', this.value)"></div>
+            <div class="input-group"><label class="label">Text Color</label><input type="color" class="color-input" value="${b.color||'#111827'}" oninput="updateProp('${b.id}', 'color', this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Subtext Color</label><input type="color" class="color-input" value="${b.textColor||'#6b7280'}" oninput="updateProp('${b.id}', 'textColor', this.value)"></div>
+        <div class="input-group-row"><label class="label">Card Shadow</label><input type="checkbox" onchange="updateProp('${b.id}', 'shadow', this.checked)" ${b.shadow!==false?'checked':''}></div>
+        <div class="input-group"><label class="label">Card Radius</label><input type="range" class="input" min="0" max="40" value="${b.borderRadius!==undefined?b.borderRadius:12}" oninput="updateProp('${b.id}', 'borderRadius', this.value)"></div>
+        <div class="input-group">
+            <label class="label">Alignment</label>
+            <select class="select" onchange="updateProp('${b.id}', 'align', this.value)">
+                <option value="center" ${b.align==='center'||!b.align?'selected':''}>Center</option>
+                <option value="left" ${b.align==='left'?'selected':''}>Left</option>
+            </select>
+        </div>
+    `;
+}
+

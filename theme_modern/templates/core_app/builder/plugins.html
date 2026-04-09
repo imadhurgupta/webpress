@@ -1,0 +1,343 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Plugins Marketplace{% endblock %}
+{% block nav_plugins %}text-white bg-slate-800/50{% endblock %}
+{% block icon_plugins %}text-indigo-400{% endblock %}
+{% block page_title %}<div class="flex items-center gap-3"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="text-indigo-500" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Plugin Center</div>{% endblock %}
+{% block page_subtitle %}Elevate your workflow with specialized tools{% endblock %}
+
+{% block content %}
+<div class="flex gap-6 mb-8 border-b border-slate-700/50 pb-2.5 mt-4">
+    <button id="btn-tab-installed" class="tab-btn text-white font-bold text-[15px] cursor-pointer pb-2 border-b-2 border-indigo-500 transition-colors" onclick="switchTab('installed')">Installed Inventory</button>
+    <button id="btn-tab-add-new" class="tab-btn text-slate-400 font-semibold text-[15px] cursor-pointer pb-2 border-b-2 border-transparent hover:text-slate-200 transition-colors" onclick="switchTab('add-new')">Marketplace</button>
+</div>
+
+<!-- INSTALLED INVENTORY TAB -->
+<div id="tab-installed" class="tab-content block">
+    {% if installed_plugins %}
+        <div class="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-800/80 border-b border-slate-700/50">
+                    <tr>
+                        <th class="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider">Plugin Solution</th>
+                        <th class="py-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Details & Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    {% for ip in installed_plugins %}
+                    <tr class="hover:bg-slate-800/20 transition-colors">
+                        <td class="py-5 px-6 align-top border-none">
+                            <div class="font-bold text-white text-[15px] mb-2 flex items-center gap-3">
+                                <div class="w-10 h-10 bg-slate-900/50 border border-slate-700 text-indigo-400 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                                    {% if ip.plugin.icon_svg %}{{ ip.plugin.icon_svg|safe }}{% else %}<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>{% endif %}
+                                </div>
+                                {{ ip.plugin.name }}
+                            </div>
+                            <div class="flex items-center gap-4 mt-3 pl-13">
+                                <form action="{% url 'toggle_plugin' ip.id %}" method="POST" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-transparent border-none p-0 text-xs font-bold underline-offset-4 hover:underline cursor-pointer transition-colors {% if ip.is_active %}text-rose-400 hover:text-rose-300{% else %}text-emerald-400 hover:text-emerald-300{% endif %}">
+                                        {% if ip.is_active %}Deactivate Integration{% else %}Activate Plugin{% endif %}
+                                    </button>
+                                </form>
+                                <a href="javascript:void(0)" onclick="openPluginConfig('{{ ip.id }}')" class="text-xs font-semibold text-slate-400 hover:text-white transition-colors underline-offset-4 hover:underline">Configuration</a>
+                                
+                                {% if ip.plugin.slug == 'seo-optimizer' %}
+                                    <a href="{% url 'seo_dashboard' ip.website.id %}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors underline-offset-4 hover:underline shrink-0">View SEO Dashboard</a>
+                                {% elif ip.plugin.slug == 'blog-engine' %}
+                                    <a href="{% url 'blog_dashboard' ip.website.id %}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors underline-offset-4 hover:underline shrink-0">Manage Blog</a>
+                                {% elif ip.plugin.slug == 'form-builder' %}
+                                    <a href="{% url 'form_dashboard' ip.website.id %}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors underline-offset-4 hover:underline shrink-0">View Leads</a>
+                                {% elif ip.plugin.slug == 'auth-manager' %}
+                                    <a href="{% url 'auth_manager_dashboard' ip.website.id %}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors underline-offset-4 hover:underline shrink-0">Manage Members</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-5 px-6 align-top border-none hidden md:table-cell">
+                            <p class="text-slate-400 text-sm mb-4 leading-relaxed">{{ ip.plugin.description }}</p>
+                            <div class="flex items-center gap-5">
+                                <div class="text-xs font-medium text-slate-500">Impacts: <strong class="text-slate-300">{{ ip.website.name }}</strong></div>
+                                {% if ip.is_active %}
+                                    <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest leading-none">● RUNNING</span>
+                                {% else %}
+                                    <span class="bg-slate-700/50 text-slate-400 border border-slate-600/50 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest leading-none">OFFLINE</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-20 px-8 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-3xl shadow-sm">
+            <div class="w-20 h-20 bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-6 text-indigo-400 shadow-inner">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </div>
+            <h3 class="text-2xl font-sans font-bold text-white mb-2 tracking-tight">The Engine is Empty</h3>
+            <p class="text-slate-400 mb-8 max-w-sm mx-auto text-sm leading-relaxed">Install specialized tools to supercharge your website's performance, SEO, and functionality.</p>
+            <button onclick="switchTab('add-new')" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)]">Discover Marketplace</button>
+        </div>
+    {% endif %}
+</div>
+
+<!-- MARKETPLACE TAB -->
+<div id="tab-add-new" class="tab-content hidden">
+    <div class="flex flex-col lg:flex-row gap-8 items-start mt-6">
+        <!-- Sidebar Filter -->
+        <aside class="w-full lg:w-64 shrink-0 bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-4 sticky top-6 custom-scrollbar max-h-[85vh] overflow-y-auto">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 px-3">Categories</h4>
+            <div class="space-y-1">
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors text-white bg-indigo-500/10 border border-indigo-500/20" onclick="filterMarket(this, 'all')">All Plugins</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'ecommerce')">E-commerce</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'business')">Business</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'portfolio')">Creative/Portfolio</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'blog')">Article/Blog</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'educational')">LMS/Education</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'media')">Site News/Media</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'security')">Security & Compliance</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'performance')">Performance</button>
+                <button class="cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent" onclick="filterMarket(this, 'administrative')">Administrative</button>
+            </div>
+        </aside>
+
+        <div class="flex-1 min-w-0">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <h3 id="market-title" class="text-xl font-sans font-bold text-white tracking-tight">All Available Integrations</h3>
+                <div class="relative w-full sm:w-64 shrink-0">
+                    <input type="text" id="market-search" onkeyup="searchPlugins()" placeholder="Search tools..." class="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">
+                    <svg class="absolute left-3.5 top-3 text-slate-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                {% for plugin in plugins %}
+                <div class="plugin-card flex flex-col bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 transition-all duration-300 hover:translate-y-[-4px] hover:border-indigo-500/50 hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)] group" data-cat="{{ plugin.description|lower }}">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="w-12 h-12 bg-slate-900/80 border border-slate-700 rounded-xl flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-105 transition-transform">
+                            {% if plugin.icon_svg %}{{ plugin.icon_svg|safe }}{% else %}<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>{% endif %}
+                        </div>
+                        {% if plugin.is_pro %}<span class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold px-2 py-1 rounded-md tracking-wider">PRO / ${{ plugin.price }}</span>{% else %}<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-1 rounded-md tracking-wider">FREE</span>{% endif %}
+                    </div>
+                    <div class="font-bold text-lg text-white mb-2 leading-tight">{{ plugin.name }}</div>
+                    <div class="text-sm text-slate-400 line-clamp-3 mb-6 flex-grow leading-relaxed">{{ plugin.description }}</div>
+                    
+                    <form action="{% url 'install_plugin' plugin.id %}" method="POST" class="flex flex-col gap-3 mt-auto w-full">
+                        {% csrf_token %}
+                        <select name="website_id" required class="w-full px-3 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none cursor-pointer">
+                            <option value="" disabled selected>Target Website...</option>
+                            {% for site in websites %}
+                            <option value="{{ site.id }}">{{ site.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="w-full py-2.5 bg-white text-slate-900 font-bold rounded-lg text-sm transition-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none">Connect Service</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONFIGURATION MODAL -->
+<div id="config-modal" class="fixed inset-0 z-[1000] hidden items-center justify-center px-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeConfigModal()"></div>
+    <div class="relative bg-slate-800 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+        <div class="flex items-center justify-between p-6 border-b border-slate-700/50">
+            <h3 id="modal-plugin-name" class="text-lg font-sans font-bold text-white tracking-tight">Configure Plugin</h3>
+            <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white transition-colors focus:outline-none">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div id="modal-config-body" class="p-6">
+            <!-- Dynamic Content -->
+        </div>
+        <div class="flex items-center justify-end gap-3 p-6 border-t border-slate-700/50 bg-slate-800/50 rounded-b-2xl">
+            <button type="button" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" onclick="closeConfigModal()">Cancel</button>
+            <button type="button" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all" onclick="savePluginConfig()">Save Settings</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentIpId = null;
+const installedPluginsMap = {{ installed_plugins_json|safe|default:'{}' }};
+const CSRF = "{{ csrf_token }}";
+
+function openPluginConfig(ipId) {
+    const ip = installedPluginsMap[ipId];
+    if (!ip) return;
+    
+    currentIpId = ipId;
+    const modal = document.getElementById('config-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    document.getElementById('modal-plugin-name').innerText = "Configure " + ip.slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+    
+    const body = document.getElementById('modal-config-body');
+    const settings = ip.settings || {};
+    let html = '';
+    
+    if (ip.slug === 'auth-manager') {
+        html = `
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Member Dashboard Access</label>
+                <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                    <p class="text-[11px] text-slate-400 leading-relaxed mb-3">You can manage all registered users for <strong>${ip.website_name || 'this site'}</strong> in the dedicated manager.</p>
+                    <a href="/auth-manager/dashboard/${ip.site_id}/" class="inline-flex items-center px-4 py-2 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 text-xs font-bold rounded-lg transition-colors border border-indigo-500/20">
+                        Open Auth Manager &rarr;
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-start">
+                    <div class="flex h-6 items-center">
+                        <input id="cfg-registration_enabled" type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900/50 text-indigo-600 focus:ring-indigo-600" ${settings.registration_enabled ? 'checked' : ''}>
+                    </div>
+                    <div class="ml-3 text-sm leading-6">
+                        <label for="cfg-registration_enabled" class="font-medium text-slate-300">Allow Public Registration</label>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (ip.slug === 'seo-optimizer') {
+        html = `
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Google Analytics ID</label>
+                <input type="text" id="cfg-ga_id" value="${settings.ga_id || ''}" placeholder="G-XXXXXXXXXX" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors">
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative flex items-start">
+                    <div class="flex h-6 items-center">
+                        <input id="cfg-auto_meta" type="checkbox" class="h-4 w-4 rounded border-slate-700 bg-slate-900/50 text-indigo-600 focus:ring-indigo-600" ${settings.auto_meta ? 'checked' : ''}>
+                    </div>
+                    <div class="ml-3 text-sm leading-6">
+                        <label for="cfg-auto_meta" class="font-medium text-slate-300">Auto-generate Meta Tags</label>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (ip.slug === 'blog-engine' || ip.slug === 'form-builder') {
+        html = `
+            <div class="text-center py-6">
+                <p class="text-slate-400 text-sm mb-4">This plugin has a dedicated management dashboard.</p>
+                <a href="${ip.slug === 'blog-engine' ? '/blog/dashboard/' : '/forms/dashboard/'}${ip.site_id}/" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors">
+                    Go to Dashboard &rarr;
+                </a>
+            </div>
+        `;
+    } else {
+        html = `<div class="text-center py-6 text-slate-400 text-sm bg-slate-900/30 rounded-xl border border-slate-700/30">This plugin has no additional configuration.</div>`;
+    }
+    
+    body.innerHTML = html;
+}
+
+function closeConfigModal() {
+    const modal = document.getElementById('config-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    currentIpId = null;
+}
+
+async function savePluginConfig() {
+    if (!currentIpId) return;
+    const ip = installedPluginsMap[currentIpId];
+    let settings = {};
+    
+    if (ip.slug === 'auth-manager') {
+        settings = {
+            registration_enabled: document.getElementById('cfg-registration_enabled').checked
+        };
+    } else if (ip.slug === 'seo-optimizer') {
+        settings = {
+            ga_id: document.getElementById('cfg-ga_id').value,
+            auto_meta: document.getElementById('cfg-auto_meta').checked
+        };
+    }
+    
+    try {
+        const res = await fetch(`/builder/${ip.site_id}/save-plugin-settings/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ slug: ip.slug, settings: settings })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+            installedPluginsMap[currentIpId].settings = settings;
+            closeConfigModal();
+        } else {
+            alert("Save failed: " + (data.message || 'Unknown error'));
+        }
+    } catch(e) {
+        alert("Error connecting to server.");
+    }
+}
+
+function switchTab(tabId) {
+    document.getElementById('tab-installed').classList.toggle('hidden', tabId !== 'installed');
+    document.getElementById('tab-installed').classList.toggle('block', tabId === 'installed');
+    
+    document.getElementById('tab-add-new').classList.toggle('hidden', tabId !== 'add-new');
+    document.getElementById('tab-add-new').classList.toggle('block', tabId === 'add-new');
+    
+    // Update button states
+    const btnInstalled = document.getElementById('btn-tab-installed');
+    const btnAddNew = document.getElementById('btn-tab-add-new');
+    
+    if (tabId === 'installed') {
+        btnInstalled.className = "tab-btn text-white font-bold text-[15px] cursor-pointer pb-2 border-b-2 border-indigo-500 transition-colors";
+        btnAddNew.className = "tab-btn text-slate-400 font-semibold text-[15px] cursor-pointer pb-2 border-b-2 border-transparent hover:text-slate-200 transition-colors";
+    } else {
+        btnAddNew.className = "tab-btn text-white font-bold text-[15px] cursor-pointer pb-2 border-b-2 border-indigo-500 transition-colors";
+        btnInstalled.className = "tab-btn text-slate-400 font-semibold text-[15px] cursor-pointer pb-2 border-b-2 border-transparent hover:text-slate-200 transition-colors";
+    }
+}
+
+function filterMarket(btnElement, cat) {
+    // Reset all buttons
+    document.querySelectorAll('.cat-item').forEach(btn => {
+        btn.className = "cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-slate-400 hover:text-white hover:bg-slate-700/30 border border-transparent";
+    });
+    
+    // Active button
+    btnElement.className = "cat-item w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors text-white bg-indigo-500/10 border border-indigo-500/20";
+    
+    const titleMap = {
+        'all': 'All Available Integrations',
+        'ecommerce': 'E-commerce Toolkit',
+        'business': 'Enterprise Connectors',
+        'portfolio': 'Creative & Portfolio Tools',
+        'blog': 'Editorial & Community Plugins',
+        'educational': 'Learning Management Services',
+        'media': 'News & Publishing Tools',
+        'security': 'Security & Legal Compliance',
+        'performance': 'Optimization & Acceleration',
+        'administrative': 'Admin & Maintenance Tools'
+    };
+    document.getElementById('market-title').innerText = titleMap[cat] || 'Filtered Search';
+    
+    document.querySelectorAll('.plugin-card').forEach(card => {
+        const desc = card.getAttribute('data-cat');
+        if (cat === 'all' || desc.includes(cat.toLowerCase() + ']')) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function searchPlugins() {
+    const q = document.getElementById('market-search').value.toLowerCase();
+    document.querySelectorAll('.plugin-card').forEach(card => {
+        const title = card.children[1].innerText.toLowerCase();
+        const desc = card.children[2].innerText.toLowerCase();
+        if (title.includes(q) || desc.includes(q)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+/* Button Block: Single customizable button */
+function renderButton(b, isMobile, isTablet) {
+    const align = b.align || 'center';
+    const color = b.color || '#ffffff';
+    const radius = b.borderRadius || '16px';
+    const fontSize = b.fontSize || '1.05rem';
+    const hPad = b.hPadding || '45px';
+    const vPad = b.vPadding || '20px';
+    
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, Array.isArray(sitePages) ? sitePages : []) : url;
+
+    let bgStyle = `background:${b.bg||'#6366f1'};`;
+    if (b.useGradient && b.bg2) {
+        bgStyle = `background: linear-gradient(135deg, ${b.bg}, ${b.bg2});`;
+    }
+
+    let borderStyle = b.border || 'none';
+    if (b.design === 'outline') {
+        bgStyle = 'background:transparent;';
+        borderStyle = `2px solid ${b.bg||'#6366f1'}`;
+    } else if (b.design === 'glass') {
+        bgStyle = 'background:rgba(255,255,255,0.1); backdrop-filter:blur(10px);';
+        borderStyle = '1px solid rgba(255,255,255,0.2)';
+    }
+
+    const iconHtml = (b.icon && b.icon !== 'none') ? `<span style="margin-right:10px;">${b.icon === 'arrow' ? '→' : (b.icon === 'play' ? '▶' : '✓')}</span>` : '';
+
+    return `
+        <div style="padding:${b.pTop||'40px'} 0 ${b.pBottom||'40px'}; text-align:${align};">
+            <a href="${resolve(b.url||'#')}" onclick="return false;" style="display:${b.fullWidth?'block':'inline-flex'}; align-items:center; justify-content:center; ${bgStyle} color:${color}; padding:${vPad} ${hPad}; border-radius:${radius}; text-decoration:none; font-weight:800; font-size:${fontSize}; transition:all 0.3s; box-shadow:0 15px 35px -10px rgba(0,0,0,0.2); border:${borderStyle}; letter-spacing:-0.01em; cursor:pointer; text-transform:${b.uppercase?'uppercase':'none'};">
+                ${iconHtml}
+                ${b.label||'Click Here'}
+            </a>
+        </div>
+    `;
+}
+
+function renderButtonProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Content & Action</div>
+        <div class="input-group"><label class="label">Label</label><input type="text" class="input" value="${b.label||''}" oninput="updateProp('${b.id}', 'label', this.value)"></div>
+        <div class="input-group"><label class="label">Target URL</label><input type="text" class="input" value="${b.url||'#'}" oninput="updateProp('${b.id}', 'url', this.value)"></div>
+        
+        <div class="section-title">Visual Layout</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Style</label>
+                <select class="select" onchange="updateProp('${b.id}', 'design', this.value)">
+                    <option value="solid" ${b.design==='solid'?'selected':''}>Filled Solid</option>
+                    <option value="outline" ${b.design==='outline'?'selected':''}>Outline Only</option>
+                    <option value="glass" ${b.design==='glass'?'selected':''}>Glassmorphism</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="label">Alignment</label>
+                <select class="select" onchange="updateProp('${b.id}', 'align', this.value)">
+                    <option value="left" ${b.align==='left'?'selected':''}>Left</option>
+                    <option value="center" ${b.align==='center'?'selected':''}>Center</option>
+                    <option value="right" ${b.align==='right'?'selected':''}>Right</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Full Width</label><input type="checkbox" ${b.fullWidth?'checked':''} onchange="updateProp('${b.id}', 'fullWidth', this.checked)"></div>
+            <div class="input-group"><label class="label">Icon</label><select class="select" onchange="updateProp('${b.id}', 'icon', this.value)"><option value="none" ${b.icon==='none'?'selected':''}>No Icon</option><option value="arrow" ${b.icon==='arrow'?'selected':''}>→ Arrow</option><option value="play" ${b.icon==='play'?'selected':''}>▶ Play</option><option value="check" ${b.icon==='check'?'selected':''}>✓ Check</option></select></div>
+        </div>
+
+        <div class="section-title">Colors & Geometry</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Primary Color</label><input type="color" class="color-input" value="${b.bg||'#6366f1'}" oninput="updateProp('${b.id}', 'bg', this.value)"></div>
+            <div class="input-group"><label class="label">Secondary Grad</label><input type="color" class="color-input" value="${b.bg2||'#a855f7'}" oninput="updateProp('${b.id}', 'bg2', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Use Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('${b.id}', 'useGradient', this.checked)"></div>
+            <div class="input-group"><label class="label">Text Color</label><input type="color" class="color-input" value="${b.color||'#ffffff'}" oninput="updateProp('${b.id}', 'color', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Corner Radius</label><input type="text" class="input" value="${b.borderRadius||'16px'}" oninput="updateProp('${b.id}', 'borderRadius', this.value)"></div>
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Uppercase</label><input type="checkbox" ${b.uppercase?'checked':''} onchange="updateProp('${b.id}', 'uppercase', this.checked)"></div>
+        </div>
+
+        <div class="section-title">Sizing & Padding</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Button Horiz Pad</label><input type="text" class="input" value="${b.hPadding||'45px'}" oninput="updateProp('${b.id}', 'hPadding', this.value)"></div>
+            <div class="input-group"><label class="label">Button Vert Pad</label><input type="text" class="input" value="${b.vPadding||'20px'}" oninput="updateProp('${b.id}', 'vPadding', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Section Top Pad</label><input type="text" class="input" value="${b.pTop||'40px'}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Section Bottom Pad</label><input type="text" class="input" value="${b.pBottom||'40px'}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+    `;
+}

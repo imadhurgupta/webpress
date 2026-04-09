@@ -1,0 +1,161 @@
+/* Hero Block: Modern landing page hero */
+function renderHero(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const pTop = b.pTop || (isSmall ? '80px' : '150px');
+    const pBottom = b.pBottom || (isSmall ? '80px' : '150px');
+    const hPad = b.fullWidth ? '20px' : (isSmall ? '24px' : 'calc((100% - 1240px)/2 + 30px)');
+    
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, Array.isArray(sitePages) ? sitePages : []) : url;
+
+    let bgStyle = `background:${b.bg||'#0f172a'};`;
+    if (b.useGradient && b.bg2) bgStyle = `background: radial-gradient(circle at top left, ${b.bg}, ${b.bg2});`;
+    if (b.bgImage) bgStyle += `background-image: linear-gradient(rgba(0,0,0,${b.overlayOpacity||0.6}), rgba(0,0,0,${b.overlayOpacity||0.6})), url(${b.bgImage}); background-size:cover; background-position:center;`;
+
+    let containerStyle = `${bgStyle} color:${b.color||'#ffffff'}; padding:${pTop} ${hPad} ${pBottom}; min-height:${isSmall?'500px':(b.layout==='stacked'?'auto':'800px')}; display:flex; flex-direction:column; justify-content:center; align-items:center; transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position:relative; overflow:hidden; font-family:var(--font-main);`;
+    
+    const badgeHtml = b.badge ? `<div style="display:inline-flex; align-items:center; background:${b.badgeColor||'rgba(255,255,255,0.1)'}; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2); padding:8px 16px; border-radius:100px; font-size:0.75rem; font-weight:800; color:white; margin-bottom:30px; letter-spacing:0.05em; text-transform:uppercase;"><span style="color:${b.primaryBtnBg||'#6366f1'}; margin-right:8px;">●</span> ${b.badge}</div>` : '';
+
+    const glassStyle = b.showGlassContent ? `background:rgba(255,255,255,0.03); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); padding:50px; border-radius:40px; box-shadow:0 40px 100px -20px rgba(0,0,0,0.4);` : '';
+
+    let contentJustify = 'flex-start';
+    let textAlign = 'left';
+    let contentWidth = '650px';
+    if (b.layout === 'centered' || b.layout === 'stacked') {
+        contentJustify = 'center';
+        textAlign = 'center';
+        contentWidth = '850px';
+    }
+
+    const primaryAction = b.primaryBtn ? `<a href="${resolve(b.primaryBtnUrl||'#')}" onclick="return false;" style="display:inline-block; background:${b.primaryBtnBg||'#6366f1'}; color:white; border:none; padding:20px 45px; border-radius:18px; font-weight:800; text-decoration:none; font-size:1rem; box-shadow:0 20px 40px -10px rgba(99,102,241,0.5);">${b.primaryBtn}</a>` : '';
+    const secondaryAction = b.secondaryBtn ? `<a href="${resolve(b.secondaryBtnUrl||'#')}" onclick="return false;" style="display:inline-block; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.2); padding:20px 45px; border-radius:18px; text-decoration:none; font-weight:800; font-size:1rem; backdrop-filter:blur(10px);">${b.secondaryBtn}</a>` : '';
+
+    const contentHtml = `
+        <div style="flex:1; width:100%; max-width:${contentWidth}; z-index:2; margin:${(b.layout==='centered'||b.layout==='stacked')?'0 auto':'0'}; text-align:${textAlign}; ${glassStyle}">
+            ${badgeHtml}
+            <h1 style="font-size: ${isSmall ? '3rem' : '5rem'}; line-height: 0.95; font-weight: 900; margin-bottom: 25px; color: ${b.headingColor||'white'}; letter-spacing:-0.05em; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));">${b.title||'The Future of Web Design'}</h1>
+            <p style="font-size: 1.25rem; opacity: 0.7; margin-bottom: 45px; line-height: 1.6; font-weight: 500; max-width: ${(b.layout==='centered'||b.layout==='stacked')?'700px':'100%'}; margin-left:auto; margin-right:auto;">${b.subtitle||'Create stunning layouts with a simple, high-performance visual builder designed for modern startups.'}</p>
+            <div style="display:flex; gap:22px; justify-content:${contentJustify}; align-items:center; flex-wrap:wrap;">
+                ${primaryAction}
+                ${secondaryAction}
+            </div>
+        </div>
+    `;
+
+    let imgStyle = `width:100%; max-width:1000px; border-radius:24px; box-shadow:0 60px 120px -20px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1);`;
+    if (b.layout === 'split') {
+        imgStyle = `width:110%; max-width:800px; border-radius:40px; box-shadow:0 60px 120px -20px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1);`;
+    }
+    if (b.imageEffect === 'floating') imgStyle += `animation: float 6s ease-in-out infinite;`;
+    if (b.imageEffect === '3d' && b.layout !== 'stacked') imgStyle += `transform: perspective(1000px) rotateY(${b.reverse?'15deg':'-15deg'}) rotateX(5deg);`;
+    if (b.imageEffect === '3d' && b.layout === 'stacked') imgStyle += `transform: perspective(1200px) rotateX(15deg) translateY(20px);`;
+
+    const sideImgHtml = (b.sideImage && b.layout === 'split' && !isMobile) ? `
+        <div style="flex:1; display:flex; justify-content:center; align-items:center; padding-left:40px; z-index:1;">
+            <img src="${b.sideImage}" style="${imgStyle}" alt="Hero Image">
+        </div>
+    ` : '';
+
+    const stackedImgHtml = (b.sideImage && b.layout === 'stacked') ? `
+        <div style="width:100%; display:flex; justify-content:center; margin-top:60px; z-index:2;">
+            <img src="${b.sideImage}" style="${imgStyle}" alt="Hero Image Preview">
+        </div>
+    ` : '';
+
+    const waveHtml = b.divider === 'wave' ? `<div style="position:absolute; bottom:0; left:0; width:100%; overflow:hidden; line-height:0; z-index:1;"><svg style="position:relative; display:block; width:calc(100% + 1.3px); height:70px;" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,119.93,197.36,108.15Z" fill="${b.dividerColor||'#ffffff'}"></path></svg></div>` : '';
+    const angleHtml = b.divider === 'angle' ? `<div style="position:absolute; bottom:0; left:0; width:100%; border-bottom:100px solid ${b.dividerColor||'#ffffff'}; border-left:100vw solid transparent; z-index:1;"></div>` : '';
+
+    return `
+        <section style="${containerStyle}">
+            <div style="display:flex; flex-direction:${b.layout==='stacked'?'column':(b.reverse?'row-reverse':'row')}; align-items:center; justify-content:center; width:100%; max-width:1200px; transition:reverse 0.3s; z-index:2;">
+                ${contentHtml}${sideImgHtml}
+            </div>
+            ${stackedImgHtml}
+            ${b.layout === 'centered' ? `<div style="position:absolute; bottom:0; left:0; width:100%; height:150px; background:linear-gradient(transparent, ${b.bg||'#0f172a'}); z-index:1;"></div>` : ''}
+            ${waveHtml} ${angleHtml}
+        </section>
+        <style>
+            @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-25px); } 100% { transform: translateY(0px); } }
+        </style>
+    `;
+}
+
+function renderHeroProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Main Content</div>
+        <div class="input-group"><label class="label">Heading</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('${b.id}', 'title', this.value)"></div>
+        <div class="input-group"><label class="label">Subtitle</label><textarea class="textarea" oninput="updateProp('${b.id}', 'subtitle', this.value)">${b.subtitle||''}</textarea></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Badge Text</label><input type="text" class="input" value="${b.badge||''}" oninput="updateProp('${b.id}', 'badge', this.value)"></div>
+            <div class="input-group"><label class="label">Badge Color</label><input type="color" class="color-input" value="${b.badgeColor||'#6366f1'}" oninput="updateProp('${b.id}', 'badgeColor', this.value)"></div>
+        </div>
+
+        <div class="section-title">Visual Layout</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Base Layout</label>
+                <select class="select" onchange="updateProp('${b.id}', 'layout', this.value)">
+                    <option value="split" ${b.layout==='split'?'selected':''}>Visual Split</option>
+                    <option value="centered" ${b.layout==='centered'?'selected':''}>Impact Center</option>
+                    <option value="stacked" ${b.layout==='stacked'?'selected':''}>Dashboard Stacked</option>
+                </select>
+            </div>
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Reverse Split (for Split)</label><input type="checkbox" ${b.reverse?'checked':''} onchange="updateProp('${b.id}', 'reverse', this.checked)"></div>
+        </div>
+        <div class="grid-2">
+             <div class="input-group-row"><label class="label">Full Width</label><input type="checkbox" ${b.fullWidth?'checked':''} onchange="updateProp('fullWidth', this.checked)"></div>
+             <div class="input-group-row"><label class="label">Glass Filter</label><input type="checkbox" ${b.showGlassContent?'checked':''} onchange="updateProp('showGlassContent', this.checked)"></div>
+        </div>
+
+        <div class="section-title">Background & Margins</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Primary BG</label><input type="color" class="color-input" value="${b.bg||'#0f172a'}" oninput="updateProp('bg', this.value)"></div>
+            <div class="input-group"><label class="label">Accent BG</label><input type="color" class="color-input" value="${b.bg2||'#1e293b'}" oninput="updateProp('bg2', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row"><label class="label">Use Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('useGradient', this.checked)"></div>
+            <div class="input-group"><label class="label">Overlay Opac</label><input type="text" class="input" value="${b.overlayOpacity||'0.6'}" oninput="updateProp('overlayOpacity', this.value)"></div>
+        </div>
+        ${renderImageUploader('bgImage', b.bgImage, 'Background Image')}
+        
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Padding</label><input type="text" class="input" placeholder="e.px 150px" value="${b.pTop||''}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Padding</label><input type="text" class="input" placeholder="e.px 150px" value="${b.pBottom||''}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Bottom Divider</label>
+                <select class="select" onchange="updateProp('divider', this.value)">
+                    <option value="none" ${b.divider==='none'?'selected':''}>None</option>
+                    <option value="wave" ${b.divider==='wave'?'selected':''}>Wave Bottom</option>
+                    <option value="angle" ${b.divider==='angle'?'selected':''}>Angled Bottom</option>
+                </select>
+            </div>
+            <div class="input-group"><label class="label">Divider Color</label><input type="color" class="color-input" value="${b.dividerColor||'#ffffff'}" oninput="updateProp('dividerColor', this.value)"></div>
+        </div>
+
+        <div class="section-title">Feature Hero Image</div>
+        ${renderImageUploader('sideImage', b.sideImage, 'Side Image')}
+        <div class="input-group">
+            <label class="label">Image Animation</label>
+            <select class="select" onchange="updateProp('imageEffect', this.value)">
+                <option value="static" ${b.imageEffect==='static'?'selected':''}>Static Position</option>
+                <option value="floating" ${b.imageEffect==='floating'?'selected':''}>Floating Float</option>
+                <option value="3d" ${b.imageEffect==='3d'?'selected':''}>3D Tilt View</option>
+            </select>
+        </div>
+
+        <div class="section-title">Action Buttons</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Primary Label</label><input type="text" class="input" value="${b.primaryBtn||''}" oninput="updateProp('primaryBtn', this.value)"></div>
+            <div class="input-group"><label class="label">Btn Color</label><input type="color" class="color-input" value="${b.primaryBtnBg||'#6366f1'}" oninput="updateProp('primaryBtnBg', this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Primary URL</label><input type="text" class="input" placeholder="/about" value="${b.primaryBtnUrl||''}" oninput="updateProp('primaryBtnUrl', this.value)"></div>
+        
+        <div class="grid-2" style="margin-top:10px;">
+            <div class="input-group"><label class="label">Secondary Label</label><input type="text" class="input" value="${b.secondaryBtn||''}" oninput="updateProp('secondaryBtn', this.value)"></div>
+            <div class="input-group"><label class="label">Secondary URL</label><input type="text" class="input" placeholder="/features" value="${b.secondaryBtnUrl||''}" oninput="updateProp('secondaryBtnUrl', this.value)"></div>
+        </div>
+    `;
+}

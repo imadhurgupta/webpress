@@ -1,0 +1,195 @@
+/* Table Block */
+function renderTable(b, isMobile) {
+    const headers = b.headers || ['Column 1', 'Column 2', 'Column 3'];
+    const rows    = b.rows    || [
+        ['Row 1, Cell 1', 'Row 1, Cell 2', 'Row 1, Cell 3'],
+        ['Row 2, Cell 1', 'Row 2, Cell 2', 'Row 2, Cell 3'],
+    ];
+    const style   = b.tableStyle || 'striped'; // striped | bordered | minimal | card
+    const accent  = b.accent  || '#7c3aed';
+    const color   = b.color   || '#0a0a0a';
+    const bgHead  = b.bgHead  || accent;
+    const colorHead = b.colorHead || '#ffffff';
+    
+    // Density (Padding & Font size)
+    const density = b.density || 'normal';
+    let fSize = '0.9rem'; let hSize = '0.82rem';
+    if (density === 'compact') { fSize = '0.8rem'; hSize = '0.75rem'; }
+    if (density === 'spacious') { fSize = '1rem'; hSize = '0.88rem'; }
+    
+    // Cell Length & Breadth
+    const pY = b.cellPadY !== undefined ? b.cellPadY : 12;
+    const pX = b.cellPadX !== undefined ? b.cellPadX : 16;
+    const pad = `${pY}px ${pX}px`;
+
+    const colWidths = b.colWidths || [];
+    const rowHeights = b.rowHeights || [];
+    const thStyle = (i) => `padding:${pad};text-align:left;font-size:${hSize};font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${colorHead};background:${bgHead};white-space:nowrap;${colWidths[i]&&colWidths[i]!=='auto' ? `width:${colWidths[i]};min-width:${colWidths[i]};max-width:${colWidths[i]};` : ''}`;
+    const tdStyle = (r) => `padding:${pad};font-size:${fSize};color:${color};${style==='striped' && r%2===0?`background:rgba(124,58,237,0.04);`:''}`;
+    const borderStyle = style === 'bordered' ? 'border:1px solid rgba(0,0,0,0.1);' : '';
+
+    const headerRow = headers.map((h, i) => `<th style="${thStyle(i)}">${h}</th>`).join('');
+    const bodyRows  = rows.map((row, r) =>
+        `<tr style="${rowHeights[r]&&rowHeights[r]!=='auto'?`height:${rowHeights[r]};`:''}">${row.map(cell => `<td style="${tdStyle(r)}${borderStyle}">${cell}</td>`).join('')}</tr>`
+    ).join('');
+
+    const tableWrap = style === 'card'
+        ? `box-shadow:0 4px 24px rgba(0,0,0,0.08);border-radius:14px;overflow:hidden;`
+        : `border:1px solid rgba(0,0,0,0.08);border-radius:10px;overflow:hidden;`;
+        
+    // Table Width Constraints
+    const tWidth = b.tableMaxWidth || 100;
+    let widthCss = `width: ${tWidth}%; margin: 0 auto; transition: width 0.1s;`;
+
+    return `<div style="padding:${b.blockPadding||'40px 20px'};overflow-x:auto;">
+        <div style="${widthCss}">
+            ${b.title ? `<h3 style="font-size:1.4rem;font-weight:700;color:${color};margin:0 0 20px;">${b.title}</h3>` : ''}
+            <div style="${tableWrap}">
+                <table style="width:100%;border-collapse:collapse;min-width:${isMobile?'500px':'auto'};">
+                    <thead><tr>${headerRow}</tr></thead>
+                    <tbody>${bodyRows}</tbody>
+                </table>
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderTableProps(b) {
+    const headers = b.headers || ['Column 1', 'Column 2', 'Column 3'];
+    const rows    = b.rows    || [['Cell','Cell','Cell'],['Cell','Cell','Cell']];
+    const style   = b.tableStyle || 'striped';
+    const density = b.density || 'normal';
+    const pY = b.cellPadY !== undefined ? b.cellPadY : 12;
+    const pX = b.cellPadX !== undefined ? b.cellPadX : 16;
+    
+    return `
+        <div class="section-title" style="margin-top:0;">Style & Sizing</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px;">
+            ${['striped','bordered','minimal','card'].map(s=>`
+                <button onclick="updateProp('tableStyle','${s}')" style="padding:7px;border-radius:7px;border:2px solid ${style===s?'var(--violet)':'var(--border)'};background:${style===s?'var(--violet-dim)':'var(--bg-surface)'};color:${style===s?'var(--violet)':'var(--text-mid)'};font-size:10px;font-weight:700;cursor:pointer;text-transform:capitalize;">${s}</button>
+            `).join('')}
+        </div>
+        
+        <div class="input-group">
+            <label class="label" style="font-size:8px;">Table Overall Width (${b.tableMaxWidth || 100}%)</label>
+            <input type="range" min="20" max="100" value="${b.tableMaxWidth || 100}" oninput="updateProp('tableMaxWidth', parseInt(this.value))" style="width:100%; margin-top:8px; cursor:ew-resize;">
+        </div>
+        
+        <div class="grid-2">
+            <div>
+                <label class="label" style="font-size:8px;">Cell Length (${pY}px)</label>
+                <input type="range" min="4" max="80" value="${pY}" oninput="updateProp('cellPadY', parseInt(this.value))" style="width:100%; margin-top:8px; cursor:ns-resize;">
+            </div>
+            <div>
+                <label class="label" style="font-size:8px;">Cell Breadth (${pX}px)</label>
+                <input type="range" min="4" max="120" value="${pX}" oninput="updateProp('cellPadX', parseInt(this.value))" style="width:100%; margin-top:8px; cursor:ew-resize;">
+            </div>
+        </div>
+
+        <div class="input-group"><label class="label">Title (optional)</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title',this.value)"></div>
+
+        <div class="section-title">Columns (${headers.length})</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:240px;overflow-y:auto;padding-right:5px;">
+            ${headers.map((h,i)=> {
+                const cw = (b.colWidths && b.colWidths[i] && b.colWidths[i] !== 'auto') ? parseInt(b.colWidths[i]) : 150;
+                return `<div style="display:flex;flex-direction:column;gap:6px;background:var(--bg-surface);padding:8px;border:1px solid var(--border);border-radius:6px;">
+                    <div style="display:flex;gap:6px;">
+                        <input type="text" class="input" value="${h.replace(/"/g, '&quot;')}" oninput="updateTableHeader(${i},this.value)" style="flex:1;">
+                        <button onclick="removeTableCol(${i})" style="background:#ef4444;border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-weight:700;flex-shrink:0;">×</button>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                        <span style="font-size:8px;font-weight:700;color:var(--text-lo);cursor:help;" title="One-by-one cell width control">W</span>
+                        <input type="range" min="40" max="800" value="${cw}" oninput="updateTableColWidth(${i},this.value + 'px')" style="flex:1;cursor:ew-resize;">
+                        <button onclick="updateTableColWidth(${i},'auto')" style="background:var(--bg-panel);border:1px solid var(--border);color:var(--text-mid);font-size:8px;padding:3px 6px;border-radius:4px;cursor:pointer;" title="Reset to Auto">AUTO</button>
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>
+
+        <div class="section-title">Rows (${rows.length})</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px; max-height:280px; overflow-y:auto; padding-right:5px;">
+            ${rows.map((row, r) => {
+                const rh = (b.rowHeights && b.rowHeights[r] && b.rowHeights[r] !== 'auto') ? parseInt(b.rowHeights[r]) : 50;
+                return `
+                <div style="background:var(--bg-surface); border:1px solid var(--border); padding:8px; border-radius:8px; position:relative;">
+                    <div style="display:grid; grid-template-columns:repeat(${headers.length > 0 ? headers.length : 1}, 1fr); gap:6px; margin-bottom:6px;">
+                        ${row.map((cell, c) => `
+                            <input type="text" class="input" value="${cell.replace(/"/g, '&quot;')}" placeholder="Data" oninput="updateTableCell(${r}, ${c}, this.value)" style="padding:5px 8px; font-size:10px;">
+                        `).join('')}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px; background:var(--bg-panel); padding:4px 6px; border-radius:4px; border:1px solid rgba(0,0,0,0.05);">
+                        <span style="font-size:8px;font-weight:700;color:var(--text-lo);cursor:help;" title="One-by-one row height control">H</span>
+                        <input type="range" min="30" max="400" value="${rh}" oninput="updateTableRowHeight(${r},this.value + 'px')" style="flex:1;cursor:ns-resize;">
+                        <button onclick="updateTableRowHeight(${r},'auto')" style="background:var(--bg-surface);border:1px solid var(--border);color:var(--text-mid);font-size:8px;padding:3px 6px;border-radius:4px;cursor:pointer;" title="Reset to Auto">AUTO</button>
+                    </div>
+                    <button onclick="removeTableRow(${r})" style="position:absolute; top:-8px; right:-8px; background:#ef4444; border:none; color:#fff; width:18px; height:18px; border-radius:4px; font-size:14px; line-height:16px; cursor:pointer;" title="Delete Row">&times;</button>
+                </div>
+            `}).join('')}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
+            <button class="btn-primary" style="padding:8px;font-size:11px;" onclick="addTableCol()">+ Add Column</button>
+            <button class="btn-primary" style="padding:8px;font-size:11px;" onclick="addTableRow()">+ Add Row</button>
+        </div>
+
+        <div class="section-title">Colors</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Header BG</label><input type="color" class="color-input" value="${b.bgHead||'#7c3aed'}" oninput="updateProp('bgHead',this.value)"></div>
+            <div class="input-group"><label class="label">Header Text</label><input type="color" class="color-input" value="${b.colorHead||'#ffffff'}" oninput="updateProp('colorHead',this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Body Text</label><input type="color" class="color-input" value="${b.color||'#0a0a0a'}" oninput="updateProp('color',this.value)"></div>
+    `;
+}
+
+function updateTableHeader(i, val) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (!b.headers) b.headers = ['Column 1','Column 2','Column 3'];
+    b.headers[i] = val; renderCanvas(); scheduleSave();
+}
+function updateTableColWidth(i, val) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (!b.colWidths) b.colWidths = [];
+    b.colWidths[i] = val; renderCanvas(); scheduleSave();
+}
+function updateTableRowHeight(r, val) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (!b.rowHeights) b.rowHeights = [];
+    b.rowHeights[r] = val; renderCanvas(); scheduleSave();
+}
+function updateTableCell(r, c, val) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (!b.rows) return;
+    b.rows[r][c] = val; renderCanvas(); scheduleSave();
+}
+function addTableCol() {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (!b.headers) b.headers = ['Column 1'];
+    b.headers.push('New Column');
+    if (!b.colWidths) b.colWidths = [];
+    b.colWidths.push('auto');
+    if (!b.rows) b.rows = [];
+    b.rows.forEach(r => r.push(''));
+    render(); scheduleSave();
+}
+function removeTableCol(i) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (b.headers) b.headers.splice(i,1);
+    if (b.colWidths) b.colWidths.splice(i,1);
+    if (b.rows) b.rows.forEach(r => r.splice(i,1));
+    render(); scheduleSave();
+}
+function addTableRow() {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    const cols = (b.headers||['A']).length;
+    if (!b.rows) b.rows = [];
+    b.rows.push(Array(cols).fill('New Data'));
+    if (!b.rowHeights) b.rowHeights = [];
+    b.rowHeights.push('auto');
+    render(); scheduleSave();
+}
+function removeTableRow(r) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    if (b.rows) b.rows.splice(r,1);
+    if (b.rowHeights) b.rowHeights.splice(r,1);
+    render(); scheduleSave();
+}

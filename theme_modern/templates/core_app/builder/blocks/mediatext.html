@@ -1,0 +1,72 @@
+/* Media & Text Block — image + text side by side */
+function renderMediaText(b, isMobile) {
+    const flip   = b.flip || false;
+    const imgUrl = b.imgUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80';
+    const imgW   = b.imgWidth || '50%';
+    const radius = b.imgRadius || '16px';
+    const vAlign = b.vAlign || 'center';
+    const color  = b.color  || '#0a0a0a';
+    const gap    = b.gap    || '48px';
+
+    const mediaHtml = `<div style="flex:0 0 ${isMobile?'100%':imgW};${!isMobile?'max-width:'+imgW+';':''}">
+        <img src="${imgUrl}" alt="${b.imgAlt||''}" style="width:100%;height:${b.imgHeight||'auto'};object-fit:cover;border-radius:${radius};display:block;${b.shadow?'box-shadow:0 20px 60px rgba(0,0,0,0.15);':''}">
+    </div>`;
+
+    const labelHtml = b.label ? `<span style="display:inline-block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${b.accent||'#7c3aed'};margin-bottom:10px;">${b.label}</span>` : '';
+    const titleHtml = b.title ? `<h2 style="font-size:${isMobile?'1.5rem':'2rem'};font-weight:800;color:${color};margin:0 0 14px;line-height:1.2;letter-spacing:-0.02em;">${b.title}</h2>` : '';
+    const textHtml  = b.content ? `<p style="font-size:${isMobile?'0.95rem':'1rem'};color:${color};opacity:0.75;line-height:1.7;margin:0 0 ${b.btnLabel?'24px':'0'};">${b.content}</p>` : '';
+    const btnHtml   = b.btnLabel ? `<a href="${b.btnUrl||'#'}" ${b.btnUrl?'':'onclick="return false;"'} style="display:inline-block;text-decoration:none;background:${b.btnBg||'#7c3aed'};color:${b.btnColor||'#fff'};font-weight:700;padding:11px 26px;border-radius:${b.btnRadius||'8px'};font-size:0.9rem;margin-top:4px;">${b.btnLabel}</a>` : '';
+
+    const contentHtml = `<div style="flex:1;display:flex;flex-direction:column;justify-content:${vAlign==='top'?'flex-start':vAlign==='bottom'?'flex-end':'center'};${isMobile?'padding-top:24px;':''}">
+        ${labelHtml}${titleHtml}${textHtml}${btnHtml}
+    </div>`;
+
+    const items = flip && !isMobile ? [contentHtml, mediaHtml] : [mediaHtml, contentHtml];
+
+    return `<div style="padding:${b.pTop||'60px'} 0 ${b.pBottom||'60px'};">
+        <div style="display:flex;flex-direction:${isMobile?'column':'row'};gap:${gap};align-items:${isMobile?'stretch':vAlign};max-width:1200px;margin:0 auto;padding:0 24px;">
+            ${items.join('')}
+        </div>
+    </div>`;
+}
+
+function renderMediaTextProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Image Settings</div>
+        ${renderImageUploader('imgUrl', b.imgUrl, 'Side Image')}
+        <div class="input-group"><label class="label">Alt Text</label><input type="text" class="input" value="${b.imgAlt||''}" oninput="updateProp('imgAlt',this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Img Width</label><input type="text" class="input" value="${b.imgWidth||'50%'}" oninput="updateProp('imgWidth',this.value)"></div>
+            <div class="input-group"><label class="label">Img Radius</label><input type="text" class="input" value="${b.imgRadius||'16px'}" oninput="updateProp('imgRadius',this.value)"></div>
+        </div>
+        <div class="input-group-row"><label class="label">Drop Shadow</label><input type="checkbox" ${b.shadow?'checked':''} onchange="updateProp('shadow',this.checked)"></div>
+        <div class="input-group-row"><label class="label">Flip (image right)</label><input type="checkbox" ${b.flip?'checked':''} onchange="updateProp('flip',this.checked)"></div>
+
+        <div class="section-title">Content Logic</div>
+        <div class="input-group"><label class="label">Label</label><input type="text" class="input" value="${b.label||''}" oninput="updateProp('label',this.value)"></div>
+        <div class="input-group"><label class="label">Title</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title',this.value)"></div>
+        <div class="input-group"><label class="label">Body Text</label><textarea class="textarea" style="height:100px;" oninput="updateProp('content',this.value)">${b.content||''}</textarea></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Button Text</label><input type="text" class="input" value="${b.btnLabel||''}" oninput="updateProp('btnLabel',this.value)"></div>
+            <div class="input-group"><label class="label">Button URL</label><input type="text" class="input" value="${b.btnUrl||'#'}" oninput="updateProp('btnUrl',this.value)"></div>
+        </div>
+
+        <div class="section-title">Visual Identity</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Accent Color</label><input type="color" class="color-input" value="${b.accent||'#7c3aed'}" oninput="updateProp('accent',this.value)"></div>
+            <div class="input-group"><label class="label">Text Color</label><input type="color" class="color-input" value="${b.color||'#0a0a0a'}" oninput="updateProp('color',this.value)"></div>
+        </div>
+        <div class="input-group">
+            <label class="label">Vertical Align</label>
+            <select class="select" onchange="updateProp('vAlign',this.value)">
+                ${['top','center','bottom'].map(a=>`<option value="${a}" ${b.vAlign===a?'selected':''}>${a}</option>`).join('')}
+            </select>
+        </div>
+
+        <div class="section-title">Geometric Spacing</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Pad</label><input type="text" class="input" value="${b.pTop||'60px'}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Pad</label><input type="text" class="input" value="${b.pBottom||'60px'}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+    `;
+}

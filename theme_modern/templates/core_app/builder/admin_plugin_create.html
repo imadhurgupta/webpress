@@ -1,0 +1,47 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Create Plugin{% endblock %}
+{% block nav_plugins %}active{% endblock %}
+{% block page_title %}<div style="display:flex;align-items:center;gap:12px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Create Plugin</div>{% endblock %}
+{% block page_subtitle %}Add a new software extension to the available plugins list{% endblock %}
+{% block page_actions %}
+    <a href="{% url 'admin_plugins' %}" class="btn-sm btn-sm-outline">← Back to Plugins</a>
+{% endblock %}
+
+{% block content %}
+<div class="dash-card" style="max-width:700px; margin:0 auto;">
+    <form method="POST" style="display:flex; flex-direction:column; gap:1.25rem;">
+        {% csrf_token %}
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:700; font-size:0.9rem;">Plugin Name</label>
+            <input type="text" name="name" required class="search-input" placeholder="e.g. SEO Optimizer Pro" style="width:100%;">
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:700; font-size:0.9rem;">Clean Description</label>
+            <textarea name="description" required class="search-input" rows="3" placeholder="Automatically generate meta tags..." style="width:100%; border-radius:var(--radius-sm);"></textarea>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:700; font-size:0.9rem;">Icon SVG Code</label>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-0.3rem;">Paste a clean 24x24 SVG string. (Required)</p>
+            <textarea name="icon_svg" required class="search-input" rows="3" placeholder='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">...</svg>' style="width:100%; border-radius:var(--radius-sm); font-family:monospace; font-size:0.8rem;"></textarea>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:700; font-size:0.9rem; color:var(--primary);">HTML / Scripts to Inject inside &lt;head&gt;</label>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-0.3rem;">Examples: Meta tags, Google Analytics scripts, tracking pixels.</p>
+            <textarea name="head_script" class="search-input" rows="4" placeholder='<script src="https://example.com/analytics.js"></script>' style="width:100%; border-radius:var(--radius-sm); font-family:monospace; font-size:0.8rem;"></textarea>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:700; font-size:0.9rem; color:var(--primary);">HTML / Scripts to Inject before &lt;/body&gt;</label>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-0.3rem;">Examples: Stripe Connect, Chat bots, interactive UI elements.</p>
+            <textarea name="body_script" class="search-input" rows="4" placeholder='<script>console.log("Plugin working!");</script>' style="width:100%; border-radius:var(--radius-sm); font-family:monospace; font-size:0.8rem;"></textarea>
+        </div>
+
+        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn-sm btn-sm-primary" style="padding:0.75rem 1.75rem; font-size:0.95rem;">Save Product into Marketplace</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

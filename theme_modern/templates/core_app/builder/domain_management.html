@@ -1,0 +1,91 @@
+{% extends 'core_app/base_dashboard.html' %}
+{% block title %}Domain Management{% endblock %}
+{% block nav_domain %}active{% endblock %}
+{% block page_title %}Domain Management{% endblock %}
+{% block page_subtitle %}Manage custom domains for your websites. Point your sites to any domain name.{% endblock %}
+
+{% block content %}
+<div class="dash-grid">
+    <div class="dash-card" style="grid-column: 1 / -1;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </div>
+            <div>
+                <h3 style="font-weight: 800; font-size: 1.25rem;">Domain Overview</h3>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Listing all registered custom domains for your account.</p>
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: separate; border-spacing: 0 0.75rem;">
+            <thead>
+                <tr style="text-align: left; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <th style="padding: 0.5rem 1rem;">Website Name</th>
+                    <th style="padding: 0.5rem 1rem;">Status</th>
+                    <th style="padding: 0.5rem 1rem;">Custom Domain</th>
+                    <th style="padding: 0.5rem 1rem; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for site in websites %}
+                <tr style="background: var(--surface-2); border: 1px solid var(--border);">
+                    <td style="padding: 1.25rem 1rem; border-top-left-radius: 12px; border-bottom-left-radius: 12px; font-weight: 700;">{{ site.name }}</td>
+                    <td style="padding: 1.25rem 1rem;">
+                        {% if site.published %}
+                        <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">Online</span>
+                        {% else %}
+                        <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">Offline (Draft)</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1.25rem 1rem;">
+                        {% if site.custom_domain %}
+                        <code style="background: var(--primary-light); color: var(--primary); padding: 4px 8px; border-radius: 6px; font-weight: 600;">{{ site.custom_domain }}</code>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-style: italic;">No domain set</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1.25rem 1rem; border-top-right-radius: 12px; border-bottom-right-radius: 12px; text-align: right; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                        {% if site.custom_domain and site.published %}
+                        <a href="http://{{ site.custom_domain }}" target="_blank" class="btn-sm btn-sm-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            Open
+                        </a>
+                        {% endif %}
+                        <button onclick="setDomain('{{ site.id }}', '{{ site.custom_domain|default_if_none:'' }}')" class="btn-sm btn-sm-outline">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Edit Domain
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 3rem; color: var(--text-muted);">You haven't created any websites yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Domain Settings Guide Card -->
+    <div class="dash-card" style="border-style: dashed;">
+        <div style="font-size: 1.5rem; margin-bottom: 1rem;">🛠️</div>
+        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">How to configure</h4>
+        <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.5;">To use your domain here, point your domain's <strong>A Record</strong> to your server's IP address or use a <strong>CNAME</strong> pointing to our platform.</p>
+    </div>
+
+    <div class="dash-card" style="border-style: dashed;">
+        <div style="font-size: 1.5rem; margin-bottom: 1rem;">🔒</div>
+        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">SSL Certificates</h4>
+        <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.5;">All custom domains are automatically secured with <strong>Let's Encrypt SSL</strong> certificates once the DNS propagation is complete.</p>
+    </div>
+</div>
+
+<script>
+function setDomain(siteId, currentDomain) {
+    let domain = prompt("Enter custom domain (e.g., www.example.com). Leave blank to disable custom domain:", currentDomain);
+    if(domain !== null) {
+        window.location.href = "/builder/" + siteId + "/set-domain/?domain=" + encodeURIComponent(domain);
+    }
+}
+</script>
+{% endblock %}

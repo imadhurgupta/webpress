@@ -1,0 +1,153 @@
+/* Gallery Block: Grid of images */
+function renderGallery(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const cols = isMobile ? (b.colsMobile || 1) : (isTablet ? (b.colsTablet || 2) : (b.columns || 3));
+    const gap = b.gap || '32px';
+    const items = b.items || [
+        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2672&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2670&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2670&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=2640&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop'
+    ];
+
+    const shadowStyles = {
+        none: 'none',
+        soft: '0 20px 40px rgba(0,0,0,0.05)',
+        deep: '0 40px 100px -20px rgba(0,0,0,0.2)'
+    };
+
+    const itemsHtml = items.map(src => `
+        <div style="aspect-ratio:${b.aspectRatio||'3/2'}; overflow:hidden; border-radius:${b.itemRadius||'32px'}; box-shadow:${shadowStyles[b.shadowStyle||'soft']}; position:relative; group cursor:pointer;">
+            <img src="${src}" style="width:100%; height:100%; object-fit:cover; transition:all 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform:scale(1);" onmouseover="this.style.transform='scale(1.1)'; this.style.filter='${b.hoverEffect==='blur'?'blur(4px)':''}';" onmouseout="this.style.transform='scale(1)'; this.style.filter='none';">
+            ${b.hoverEffect === 'overlay' ? `<div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); opacity:0; transition:0.3s; display:flex; align-items:center; justify-content:center; text-transform:uppercase; color:white; font-weight:900; letter-spacing:0.1em; pointer-events:none;" onmouseover="this.parentElement.querySelector('div').style.opacity=1" onmouseout="this.parentElement.querySelector('div').style.opacity=0">View Details</div>` : ''}
+        </div>
+    `).join('');
+    
+    return `
+        <section style="background:${b.bg||'#ffffff'}; padding:${b.pTop||'120px'} 24px ${b.pBottom||'120px'}; transition:all 0.4s;">
+            <div style="max-width:1280px; margin:0 auto;">
+                ${b.showTitle ? `<h2 style="font-size:3rem; font-weight:900; text-align:center; margin-bottom:80px; letter-spacing:-0.04em;">${b.title||'Visual Showcase'}</h2>` : ''}
+                <div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:${gap};">
+                    ${itemsHtml}
+                </div>
+            </div>
+        </section>
+    `;
+}
+
+function updateGalleryItem(idx, val) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    if (!b.items) b.items = [
+        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2672&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2670&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2670&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=2640&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop'
+    ];
+    b.items[idx] = val;
+    renderCanvas(); renderProps(); scheduleSave();
+}
+
+function addGalleryItem() {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    if (!b.items) b.items = [];
+    b.items.push('https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2672&auto=format&fit=crop');
+    renderCanvas(); renderProps(); scheduleSave();
+}
+
+function removeGalleryItem(idx) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    b.items.splice(idx, 1);
+    renderCanvas(); renderProps(); scheduleSave();
+}
+
+
+function renderGalleryProps(b) {
+    const items = b.items || [
+        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2672&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2670&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2670&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=2640&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop'
+    ];
+
+    let itemsHtml = items.map((url, i) => `
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:12px; margin-bottom:15px; display:flex; gap:15px; align-items:flex-start;">
+            <div style="width:60px; height:60px; border-radius:8px; overflow:hidden; flex-shrink:0; background:#e2e8f0; border:1px solid var(--border);">
+                <img src="${url}" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0px;">
+                    <span style="font-size:0.8rem; font-weight:600;"></span>
+                    <button onclick="removeGalleryItem(${i})" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem; margin-bottom:8px; display:flex; align-items:center;"><i data-lucide="trash-2" style="width:12px; height:12px; margin-right:4px;"></i> Remove</button>
+                </div>
+                ${renderImageUploader('gallery_item_' + i, url, 'Image ' + (i+1) + ' URL')}
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="section-title" style="margin-top:0;">Image Content</div>
+        <div id="gallery-items">
+            ${itemsHtml}
+        </div>
+        <button onclick="addGalleryItem()" style="width:100%; padding:12px; background:#f1f5f9; border:1px dashed #cbd5e1; border-radius:12px; font-weight:600; cursor:pointer; color:#475569; margin-bottom:20px;">+ Add Image</button>
+
+        <div class="section-title">Grid Configuration</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Desktop Cols</label><input type="number" class="input" value="${b.columns||3}" oninput="updateProp('columns', parseInt(this.value))"></div>
+            <div class="input-group"><label class="label">Mobile Cols</label><input type="number" class="input" value="${b.colsMobile||1}" oninput="updateProp('colsMobile', parseInt(this.value))"></div>
+        </div>
+        <div class="input-group"><label class="label">Gap Spacing</label><input type="text" class="input" value="${b.gap||'32px'}" oninput="updateProp('gap', this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Aspect Ratio</label>
+                <select class="select" onchange="updateProp('aspectRatio', this.value)">
+                    <option value="3/2" ${b.aspectRatio==='3/2'?'selected':''}>Classic 3:2</option>
+                    <option value="1/1" ${b.aspectRatio==='1/1'?'selected':''}>Square 1:1</option>
+                    <option value="16/9" ${b.aspectRatio==='16/9'?'selected':''}>Cinema 16:9</option>
+                    <option value="9/16" ${b.aspectRatio==='9/16'?'selected':''}>Portrait 9:16</option>
+                </select>
+            </div>
+            <div class="input-group"><label class="label">Item Radius</label><input type="text" class="input" value="${b.itemRadius||'32px'}" oninput="updateProp('itemRadius', this.value)"></div>
+        </div>
+
+        <div class="section-title">Visual Dynamics</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Hover Interaction</label>
+                <select class="select" onchange="updateProp('hoverEffect', this.value)">
+                    <option value="zoom" ${b.hoverEffect==='zoom'?'selected':''}>Simple Zoom</option>
+                    <option value="overlay" ${b.hoverEffect==='overlay'?'selected':''}>Dark Overlay</option>
+                    <option value="blur" ${b.hoverEffect==='blur'?'selected':''}>Focus Blur</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="label">Visual Depth</label>
+                <select class="select" onchange="updateProp('shadowStyle', this.value)">
+                    <option value="soft" ${b.shadowStyle==='soft'?'selected':''}>Subtle Soft</option>
+                    <option value="deep" ${b.shadowStyle==='deep'?'selected':''}>High Contrast</option>
+                    <option value="none" ${b.shadowStyle==='none'?'selected':''}>Flat Minimal</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section-title">Content & Theme</div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Show Title</label><input type="checkbox" ${b.showTitle?'checked':''} onchange="updateProp('showTitle', this.checked)"></div>
+            <div class="input-group"><label class="label">Section Title</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title', this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Section BG Color</label><input type="color" class="color-input" value="${b.bg||'#ffffff'}" oninput="updateProp('bg', this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Padding</label><input type="text" class="input" value="${b.pTop||'120px'}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Padding</label><input type="text" class="input" value="${b.pBottom||'120px'}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+    `;
+}

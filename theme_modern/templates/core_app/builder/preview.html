@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="{{ baseUrl }}">
+    <title>{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }} — {{ site.name }}{% endif %}</title>
+    <meta name="description" content="{{ page.seo_description }}">
+    {% if page.keywords %}<meta name="keywords" content="{{ page.keywords }}">{% endif %}
+    {% if page.canonical_url %}<link rel="canonical" href="{{ page.canonical_url }}">{% endif %}
+    <meta name="robots" content="{{ page.robots_meta|default:'index, follow' }}">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% if page.og_title %}{{ page.og_title }}{% elif page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}">
+    <meta property="og:description" content="{% if page.og_description %}{{ page.og_description }}{% else %}{{ page.seo_description }}{% endif %}">
+    {% if page.og_image %}<meta property="og:image" content="{{ page.og_image }}">{% endif %}
+
+    {% load static %}
+    <link rel="icon" type="image/png" href="{{ page.favicon|default:site.favicon_url|default:'' }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Plugin Head Scripts -->
+    {{ head_scripts|safe }}
+    
+    <style>
+        :root {
+            --primary: {{ site.primary_color|default:'#6366f1' }};
+            --accent: {{ site.accent_color|default:'#22d3ee' }};
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        img { max-width: 100%; height: auto; display: block; }
+        a { text-decoration: none; color: inherit; transition: opacity 0.2s; }
+        a:hover { opacity: 0.8; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Preview Bar */
+        {% if not is_public %}
+        .preview-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px);
+            padding: 12px 24px; border-radius: 50px; display: flex; align-items: center; gap: 20px;
+            z-index: 9999; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: white; font-size: 0.9rem; font-weight: 600;
+        }
+        .preview-bar a { background: var(--primary); padding: 6px 16px; border-radius: 50px; }
+        {% endif %}
+
+        /* Responsive Grids */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        @media (max-width: 768px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            h1 { font-size: 2.5rem !important; }
+            h2 { font-size: 2rem !important; }
+        }
+
+        /* Navbar Behaviors */
+        .nav-sticky { position: sticky; top: 0; z-index: 1000; }
+        .nav-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+        .nav-glass { backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .nav-floating { margin: 20px auto; width: calc(100% - 40px); max-width: 1200px; border-radius: 50px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+
+    {% if not is_public %}
+    <div class="preview-bar">
+        <span>You are in Preview Mode</span>
+        <a href="{% url 'builder' site.id page.id %}">Back to Builder</a>
+    </div>
+    {% endif %}
+
+    <div id="site-root"></div>
+    
+    {{ blocks|json_script:"page-data" }}
+    <script>
+        const blocks = JSON.parse(document.getElementById('page-data').textContent) || [];
+        const isPublic = {% if is_public %}true{% else %}false{% endif %};
+        const baseUrl = "{{ baseUrl|default:'/' }}";
+        const installedPlugins = {{ installed_plugins_json|safe|default:'{}' }};
+        const sitePages = [
+            {% for p in site.pages.all %}
+                { 
+                  id: '{{ p.id }}', 
+                  title: '{{ p.title|escapejs }}', 
+                  slug: '{{ p.slug|escapejs }}', 
+                  is_home: {{ p.is_home|yesno:"true,false" }},
+                  url: isPublic 
+                        ? (baseUrl === '/' 
+                            ? ({{ p.is_home|yesno:"true,false" }} ? 'index.html' : '{{ p.slug|escapejs }}' + '.html') 
+                            : baseUrl + '{{ p.slug|escapejs }}' + '/') 
+                        : '/builder/{{ site.id }}/page/{{ p.id }}/preview/' 
+                },
+            {% endfor %}
+        ];
+    </script>
+    
+    <script>
+      // Include all block definitions exactly as the builder does to guarantee 100% visual parity
+      {% include 'core_app/builder/blocks/navbar.html' %}
+      {% include 'core_app/builder/blocks/hero.html' %}
+      {% include 'core_app/builder/blocks/ctabanner.html' %}
+      {% include 'core_app/builder/blocks/features.html' %}
+      {% include 'core_app/builder/blocks/testimonials.html' %}
+      {% include 'core_app/builder/blocks/faq.html' %}
+      {% include 'core_app/builder/blocks/pricing.html' %}
+      {% include 'core_app/builder/blocks/contact.html' %}
+      {% include 'core_app/builder/blocks/footer.html' %}
+      {% include 'core_app/builder/blocks/text.html' %}
+      {% include 'core_app/builder/blocks/button.html' %}
+      {% include 'core_app/builder/blocks/spacer.html' %}
+      {% include 'core_app/builder/blocks/image.html' %}
+      {% include 'core_app/builder/blocks/gallery.html' %}
+      {% include 'core_app/builder/blocks/video.html' %}
+      {% include 'core_app/builder/blocks/embed.html' %}
+      {% include 'core_app/builder/blocks/twitter.html' %}
+      {% include 'core_app/builder/blocks/heading.html' %}
+      {% include 'core_app/builder/blocks/list.html' %}
+      {% include 'core_app/builder/blocks/quote.html' %}
+      {% include 'core_app/builder/blocks/table.html' %}
+      {% include 'core_app/builder/blocks/code.html' %}
+      {% include 'core_app/builder/blocks/cover.html' %}
+      {% include 'core_app/builder/blocks/mediatext.html' %}
+      {% include 'core_app/builder/blocks/columns.html' %}
+      {% include 'core_app/builder/blocks/social.html' %}
+      {% include 'core_app/builder/blocks/login.html' %}
+      {% include 'core_app/builder/blocks/signup.html' %}
+      {% include 'core_app/builder/blocks/profile.html' %}
+    </script>
+
+    <script>
+        // Resolve internal links (e.g. /about) to actual preview or live URLs
+        function resolveSiteLink(url, pages) {
+            if (!url || url === '#' || url.startsWith('http') || url.startsWith('mailto:') || url.startsWith('tel:')) return url;
+            if (!pages) return url;
+            
+            const cleanUrl = url.startsWith('/') ? url : '/' + url;
+            const page = pages.find(p => {
+                const pUrl = p.is_home ? '/' : '/' + p.slug;
+                return pUrl === cleanUrl;
+            });
+            
+            return page ? page.url : url;
+        }
+
+        function renderSite() {
+            const root = document.getElementById('site-root');
+            const w = window.innerWidth;
+            const isMobile = w < 768;
+            const isTablet = w >= 768 && w < 1024;
+            const isSmall = w < 1024;
+            
+            let html = '';
+            blocks.forEach(b => {
+                let content = '';
+                try {
+                    switch(b.type) {
+                        case 'navbar': content = typeof renderNavbar === 'function' ? renderNavbar(b, isMobile, isTablet, isSmall, sitePages) : ''; break;
+                        case 'hero': content = typeof renderHero === 'function' ? renderHero(b, isMobile, isTablet) : ''; break;
+                        case 'ctabanner': content = typeof renderCta === 'function' ? renderCta(b, isMobile, isTablet) : ''; break;
+                        case 'features': content = typeof renderFeatures === 'function' ? renderFeatures(b, isMobile, isTablet) : ''; break;
+                        case 'testimonials': content = typeof renderTestimonials === 'function' ? renderTestimonials(b, isMobile, isTablet) : ''; break;
+                        case 'faq': content = typeof renderFaq === 'function' ? renderFaq(b, isMobile, isTablet) : ''; break;
+                        case 'pricing': content = typeof renderPricing === 'function' ? renderPricing(b, isMobile, isTablet) : ''; break;
+                        case 'contact': content = typeof renderContact === 'function' ? renderContact(b, isMobile, isTablet) : ''; break;
+                        case 'footer': content = typeof renderFooter === 'function' ? renderFooter(b, isMobile, isTablet) : ''; break;
+                        case 'text': content = typeof renderText === 'function' ? renderText(b, isMobile, isTablet) : ''; break;
+                        case 'button': content = typeof renderButton === 'function' ? renderButton(b, isMobile, isTablet) : ''; break;
+                        case 'spacer': content = typeof renderSpacer === 'function' ? renderSpacer(b, isMobile, isTablet) : ''; break;
+                        case 'image': content = typeof renderImage === 'function' ? renderImage(b, isMobile, isTablet) : ''; break;
+                        case 'gallery': content = typeof renderGallery === 'function' ? renderGallery(b, isMobile, isTablet) : ''; break;
+                        case 'video': content = typeof renderVideo === 'function' ? renderVideo(b, isMobile, isTablet) : ''; break;
+                        case 'embed': content = typeof renderEmbed === 'function' ? renderEmbed(b, isMobile, isTablet) : ''; break;
+                        case 'twitter': content = typeof renderTwitter === 'function' ? renderTwitter(b, isMobile, isTablet) : ''; break;
+                        case 'heading': content = typeof renderHeading === 'function' ? renderHeading(b, isMobile, isTablet) : ''; break;
+                        case 'list': content = typeof renderList === 'function' ? renderList(b, isMobile, isTablet) : ''; break;
+                        case 'quote': content = typeof renderQuote === 'function' ? renderQuote(b, isMobile, isTablet) : ''; break;
+                        case 'table': content = typeof renderTable === 'function' ? renderTable(b, isMobile, isTablet) : ''; break;
+                        case 'code': content = typeof renderCode === 'function' ? renderCode(b, isMobile, isTablet) : ''; break;
+                        case 'cover': content = typeof renderCover === 'function' ? renderCover(b, isMobile, isTablet) : ''; break;
+                        case 'mediatext': content = typeof renderMediaText === 'function' ? renderMediaText(b, isMobile, isTablet) : ''; break;
+                        case 'columns': content = typeof renderColumns === 'function' ? renderColumns(b, isMobile, isTablet) : ''; break;
+                        case 'social': content = typeof renderSocial === 'function' ? renderSocial(b, isMobile, isTablet) : ''; break;
+                        case 'login': content = typeof renderLogin === 'function' ? renderLogin(b, isMobile, isTablet) : ''; break;
+                        case 'signup': content = typeof renderSignup === 'function' ? renderSignup(b, isMobile, isTablet) : ''; break;
+                        case 'profile': content = typeof renderProfile === 'function' ? renderProfile(b, isMobile, isTablet) : ''; break;
+                        case 'html': content = b.code || ''; break;
+                        default: content = ''; break;
+                    }
+                } catch(e) { console.error('Error rendering block:', b.type, e); }
+                
+                // Remove the builder's click prevention so links work in live preview and export
+                content = content.replace(/onclick="return false;"/g, '');
+                
+                html += '<div class="published-block" data-id="'+b.id+'" style="'+(b.type==='navbar'&&b.sticky?'position:sticky;top:0;z-index:100;':'')+'">' + content + '</div>';
+            });
+            root.innerHTML = html;
+        }
+
+        // Attach resize listener to support mobile styling logic out of the box
+        let resizeTimer;
+        window.addEventListener('resize', () => { 
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(renderSite, 100);
+        });
+        
+        // Initial render
+        renderSite();
+    </script>
+
+    <!-- Plugin Body Scripts -->
+    {{ body_scripts|safe }}
+</body>
+</html>

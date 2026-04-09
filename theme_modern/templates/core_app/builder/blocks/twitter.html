@@ -1,0 +1,80 @@
+/* Twitter Block: Twitter/X post embed */
+function renderTwitter(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const accent = b.accent || '#1d9bf0';
+    const mode = b.designMode || 'x-dark';
+    
+    let bgStyle = `background:${b.bg||'#ffffff'};`;
+    if (b.useGradient && b.bg2) bgStyle = `background: linear-gradient(180deg, ${b.bg}, ${b.bg2});`;
+
+    const cardStyles = {
+        'x-dark': 'background:#000000; color:#ffffff; border:1px solid #333333;',
+        'glass': 'background:rgba(255,255,255,0.03); color:#ffffff; border:1px solid rgba(255,255,255,0.1); backdrop-filter:blur(24px);',
+        'solid': 'background:#f8fafc; color:#0f172a; border:1px solid #e2e8f0;'
+    };
+
+    const verifiedIcon = b.verified ? `<svg viewBox="0 0 24 24" style="width:18px; height:18px; fill:${accent}; margin-left:4px;"><g><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.97-.81-4.08s-2.47-1.49-4.08-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.41-2.97-.15-4.09.81s-1.42 2.47-.81 4.08c-1.31.66-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.97.81 4.08s2.47 1.49 4.08.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.41 2.97.15 4.09-.81s1.42-2.47.81-4.08c1.31-.66 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.26 2.26 4.8-5.23 1.47 1.35-6.2 6.78z"></path></g></svg>` : '';
+
+    return `
+        <div style="${bgStyle} padding:${b.pTop||'100px'} 24px ${b.pBottom||'100px'}; text-align:center; transition:all 0.4s;">
+            <div style="max-width:550px; margin:0 auto; padding:30px; border-radius:24px; text-align:left; ${cardStyles[mode]} box-shadow:0 30px 60px rgba(0,0,0,0.1);">
+                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:20px;">
+                    <div style="display:flex; gap:12px;">
+                        <div style="width:48px; height:48px; border-radius:50%; background:${accent}; display:flex; align-items:center; justify-content:center; font-weight:900; color:white; font-size:1.2rem;">${(b.userName||'W')[0]}</div>
+                        <div>
+                            <div style="display:flex; align-items:center; font-weight:800; font-size:1.05rem;">${b.userName||'WebPress Global'} ${verifiedIcon}</div>
+                            <div style="opacity:0.5; font-size:0.9rem;">@${b.handle||'webpress_hq'}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:1.5rem; opacity:0.8;">𝕏</div>
+                </div>
+                <p style="font-size:1.2rem; line-height:1.5; margin-bottom:20px; font-weight:500;">${b.tweetContent||'Building high-performance digital engines should be a standard, not an exception. ⚡️ #FutureStack'}</p>
+                <div style="opacity:0.4; font-size:0.9rem; margin-bottom:20px;">9:41 AM · Oct 12, 2024</div>
+                <div style="padding-top:15px; border-top:1px solid ${mode==='solid'?'#e2e8f0':'rgba(255,255,255,0.1)'}; display:flex; gap:30px; opacity:0.6; font-size:0.95rem; font-weight:700;">
+                    <div style="display:flex; gap:6px;"><span>${b.retweets||'1.2k'}</span> <span style="opacity:0.6; font-weight:500;">Retweets</span></div>
+                    <div style="display:flex; gap:6px;"><span>${b.likes||'4.8k'}</span> <span style="opacity:0.6; font-weight:500;">Likes</span></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderTwitterProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Identity & Authority</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Display Name</label><input type="text" class="input" value="${b.userName||''}" oninput="updateProp('userName', this.value)"></div>
+            <div class="input-group"><label class="label">User Handle</label><input type="text" class="input" value="${b.handle||''}" oninput="updateProp('handle', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Verified Status</label><input type="checkbox" ${b.verified?'checked':''} onchange="updateProp('verified', this.checked)"></div>
+            <div class="input-group"><label class="label">Accent Color</label><input type="color" class="color-input" value="${b.accent||'#1d9bf0'}" oninput="updateProp('accent', this.value)"></div>
+        </div>
+
+        <div class="section-title">Message Content</div>
+        <div class="input-group"><label class="label">Post Content</label><textarea class="textarea" style="height:100px;" oninput="updateProp('tweetContent', this.value)">${b.tweetContent||''}</textarea></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Retweets</label><input type="text" class="input" value="${b.retweets||'1.2k'}" oninput="updateProp('retweets', this.value)"></div>
+            <div class="input-group"><label class="label">Likes</label><input type="text" class="input" value="${b.likes||'4.8k'}" oninput="updateProp('likes', this.value)"></div>
+        </div>
+
+        <div class="section-title">Visual System</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Visual Mode</label>
+                <select class="select" onchange="updateProp('designMode', this.value)">
+                    <option value="x-dark" ${b.designMode==='x-dark'?'selected':''}>X-Dark</option>
+                    <option value="glass" ${b.designMode==='glass'?'selected':''}>Glassmorphism</option>
+                    <option value="solid" ${b.designMode==='solid'?'selected':''}>Solid Minimal</option>
+                </select>
+            </div>
+            <div class="input-group"><label class="label">Section BG</label><input type="color" class="color-input" value="${b.bg||'#ffffff'}" oninput="updateProp('bg', this.value)"></div>
+        </div>
+
+        <div class="section-title">Geometric Spacing</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Pad</label><input type="text" class="input" value="${b.pTop||'100px'}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Pad</label><input type="text" class="input" value="${b.pBottom||'100px'}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+    `;
+}

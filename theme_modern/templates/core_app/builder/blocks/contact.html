@@ -1,0 +1,110 @@
+/* Contact Block: Lead Gen Form */
+function renderContact(b, isMobile, isTablet) {
+    const isStack = isMobile || (b.layout === 'centered');
+    const bgBase = b.bg || '#fdfdfd';
+    const bgGrad = (b.useGradient && b.bg2) ? `linear-gradient(135deg, ${bgBase}, ${b.bg2})` : bgBase;
+    
+    const fStyle = b.fieldStyle || 'outline';
+    const fieldCss = fStyle === 'glass' 
+        ? 'background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:inherit;'
+        : (fStyle === 'solid' ? 'background:#f1f5f9; border:none;' : 'background:transparent; border:1.5px solid rgba(0,0,0,0.08);');
+
+    const formHtml = `
+        <div style="flex:1; background:${b.layout==='glass'?'rgba(255,255,255,0.05)':'white'}; backdrop-filter:${b.layout==='glass'?'blur(20px)':'none'}; padding:60px 50px; border-radius:40px; box-shadow:0 40px 100px -20px rgba(0,0,0,0.08); border:1px solid ${b.layout==='glass'?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.04)'}; width:${b.layout==='centered'?'100%':'auto'}; max-width:${b.layout==='centered'?'800px':'auto'};">
+            <form action="${b.formAction||'#'}" method="POST" onsubmit="${b.formAction?'':'event.preventDefault();'}">
+                <div style="margin-bottom:28px;"><input type="text" name="name" placeholder="${b.namePlaceholder||'Full Name'}" style="width:100%; padding:18px 24px; border-radius:16px; ${fieldCss} font-family:inherit; outline:none; font-size:1rem;"></div>
+                <div style="margin-bottom:28px;"><input type="email" name="email" placeholder="${b.emailPlaceholder||'Email Address'}" style="width:100%; padding:18px 24px; border-radius:16px; ${fieldCss} font-family:inherit; outline:none; font-size:1rem;"></div>
+                <div style="margin-bottom:35px;"><textarea rows="5" name="message" placeholder="${b.messagePlaceholder||'Project Description'}" style="width:100%; padding:18px 24px; border-radius:16px; ${fieldCss} font-family:inherit; outline:none; resize:none; font-size:1rem;"></textarea></div>
+                <button type="submit" style="background:${b.btnBg||'#6366f1'}; color:white; border:none; padding:22px; border-radius:18px; width:100%; font-weight:800; cursor:pointer; font-size:1.1rem; box-shadow:0 15px 30px rgba(99,102,241,0.3); transition:transform 0.2s;">${b.btnLabel||'Start Conversation'}</button>
+            </form>
+            <p style="text-align:center; font-size:0.8rem; margin-top:20px; opacity:0.4; font-weight:600;">${b.footerNote||'🔒 Secure & Confidential'}</p>
+        </div>
+    `;
+
+    const infoHtml = `
+        <div style="flex:1; padding-right:${isStack?0:'60px'}; text-align:${b.layout==='centered'?'center':'left'}; margin-bottom:${isStack?'60px':0};">
+            ${b.tagline !== 'none' ? `<div style="background:${b.btnBg||'#6366f1'}; color:white; padding:8px 20px; border-radius:30px; font-size:0.75rem; font-weight:800; display:inline-block; margin-bottom:25px; text-transform:uppercase; letter-spacing:0.1em;">${b.tagline||'Contact Us'}</div>` : ''}
+            <h2 style="font-size:3.5rem; font-weight:900; line-height:1.1; margin-bottom:30px; color:${b.layout==='glass'?'white':'var(--text-main)'}; letter-spacing:-0.04em;">${b.title||"Let's Build Something Great"}</h2>
+            <p style="font-size:1.2rem; opacity:0.6; margin-bottom:50px; line-height:1.8; color:${b.layout==='glass'?'white':'var(--text-muted)'};">${b.subtitle||'Have a question or looking to start a new project? Fill out the form and our team will get back to you.'}</p>
+            <div style="display:flex; flex-direction:column; gap:30px; align-items:${b.layout==='centered'?'center':'flex-start'};">
+                <div style="display:flex; align-items:center; gap:20px;"><div style="width:50px; height:50px; border-radius:15px; background:rgba(0,0,0,0.03); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">${b.icon1||'📍'}</div><div><h4 style="font-size:1rem; font-weight:800; color:inherit;">${b.label1||'Main Office'}</h4><p style="font-size:0.9rem; opacity:0.5;">${b.value1||'San Francisco, CA'}</p></div></div>
+                <div style="display:flex; align-items:center; gap:20px;"><div style="width:50px; height:50px; border-radius:15px; background:rgba(0,0,0,0.03); display:flex; align-items:center; justify-content:center; font-size:1.4rem;">${b.icon2||'✉️'}</div><div><h4 style="font-size:1rem; font-weight:800; color:inherit;">${b.label2||'Email Support'}</h4><p style="font-size:0.9rem; opacity:0.5;">${b.value2||'support@webpress.io'}</p></div></div>
+            </div>
+        </div>
+    `;
+
+    return `
+        <section style="background:${bgGrad}; padding:${b.pTop||(isMobile ? '80px' : '150px')} 24px ${b.pBottom||(isMobile ? '80px' : '150px')}; transition:all 0.3s; color:${b.layout==='glass'?'white':'var(--text-main)'};">
+            <div style="display:flex; align-items:${b.layout==='centers'?'center':'stretch'}; flex-direction:${isStack ? 'column' : 'row'}; gap:80px; max-width:1200px; margin:0 auto; justify-content:center;">${infoHtml}${formHtml}</div>
+        </section>
+    `;
+}
+
+function renderContactProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Hero Content</div>
+        <div class="input-group"><label class="label">Section Tagline</label><input type="text" class="input" value="${b.tagline||'Contact Us'}" oninput="updateProp('tagline', this.value)"></div>
+        <div class="input-group"><label class="label">Section Title</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title', this.value)"></div>
+        <div class="input-group"><label class="label">Subtitle Copy</label><textarea class="textarea" oninput="updateProp('subtitle', this.value)">${b.subtitle||''}</textarea></div>
+        
+        <div class="section-title">Contact Information Details</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Detail 1 Label</label><input type="text" class="input" value="${b.label1||'Main Office'}" oninput="updateProp('label1', this.value)"></div>
+            <div class="input-group"><label class="label">Detail 1 Value</label><input type="text" class="input" value="${b.value1||'San Francisco, CA'}" oninput="updateProp('value1', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Detail 2 Label</label><input type="text" class="input" value="${b.label2||'Email Support'}" oninput="updateProp('label2', this.value)"></div>
+            <div class="input-group"><label class="label">Detail 2 Value</label><input type="text" class="input" value="${b.value2||'support@webpress.io'}" oninput="updateProp('value2', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Detail 1 Icon (Emoji)</label><input type="text" class="input" value="${b.icon1||'📍'}" oninput="updateProp('icon1', this.value)"></div>
+            <div class="input-group"><label class="label">Detail 2 Icon (Emoji)</label><input type="text" class="input" value="${b.icon2||'✉️'}" oninput="updateProp('icon2', this.value)"></div>
+        </div>
+
+        <div class="section-title">Form Settings</div>
+        <div class="input-group"><label class="label">Form Action Endpoint (URL)</label><input type="text" class="input" value="${b.formAction||''}" oninput="updateProp('formAction', this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Name Placeholder</label><input type="text" class="input" value="${b.namePlaceholder||'Full Name'}" oninput="updateProp('namePlaceholder', this.value)"></div>
+            <div class="input-group"><label class="label">Email Placeholder</label><input type="text" class="input" value="${b.emailPlaceholder||'Email Address'}" oninput="updateProp('emailPlaceholder', this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Message Placeholder</label><input type="text" class="input" value="${b.messagePlaceholder||'Project Description'}" oninput="updateProp('messagePlaceholder', this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Button Label</label><input type="text" class="input" value="${b.btnLabel||'Start Conversation'}" oninput="updateProp('btnLabel', this.value)"></div>
+            <div class="input-group"><label class="label">Form Footer Security Note</label><input type="text" class="input" value="${b.footerNote||'🔒 Secure & Confidential'}" oninput="updateProp('footerNote', this.value)"></div>
+        </div>
+
+        <div class="section-title">Layout Structure</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Container Type</label>
+                <select class="select" onchange="updateProp('layout', this.value)">
+                    <option value="split" ${b.layout==='split'?'selected':''}>Classic Split</option>
+                    <option value="centered" ${b.layout==='centered'?'selected':''}>Centered Hub</option>
+                    <option value="glass" ${b.layout==='glass'?'selected':''}>Dark Glass</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="label">Input Field Design</label>
+                <select class="select" onchange="updateProp('fieldStyle', this.value)">
+                    <option value="outline" ${b.fieldStyle==='outline'?'selected':''}>Outline Stroke</option>
+                    <option value="solid" ${b.fieldStyle==='solid'?'selected':''}>Solid Fill</option>
+                    <option value="glass" ${b.fieldStyle==='glass'?'selected':''}>Glass Effect</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section-title">Theme & Padding Options</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Background Color 1</label><input type="color" class="color-input" value="${b.bg||'#fdfdfd'}" oninput="updateProp('bg', this.value)"></div>
+            <div class="input-group"><label class="label">Background Color 2</label><input type="color" class="color-input" value="${b.bg2||'#f3f4f6'}" oninput="updateProp('bg2', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Use Background Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('useGradient', this.checked)"></div>
+            <div class="input-group"><label class="label">Submit Button Color</label><input type="color" class="color-input" value="${b.btnBg||'#6366f1'}" oninput="updateProp('btnBg', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Section Top Pad</label><input type="text" class="input" value="${b.pTop||'150px'}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Section Bottom Pad</label><input type="text" class="input" value="${b.pBottom||'150px'}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+    `;
+}

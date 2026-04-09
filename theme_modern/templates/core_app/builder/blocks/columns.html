@@ -1,0 +1,88 @@
+/* Columns Block — flexible multi-column layout */
+function renderColumns(b, isMobile) {
+    const cols    = b.cols    || [];
+    const numCols = b.numCols || 2;
+    const gap     = b.colGap  || '24px';
+    const vAlign  = b.vAlign  || 'stretch';
+
+    // Default columns if none
+    const defaultCols = Array.from({length: numCols}, (_, i) => ({
+        title: `Column ${i+1}`,
+        body: 'Click to edit this column content. Add your text, images, or other elements here.',
+        icon: ['📌','⚡','🎯','🌟'][i] || '📌',
+        bg: b.colBg || 'transparent',
+    }));
+    const activeCols = cols.length >= numCols ? cols.slice(0, numCols) : [...cols, ...defaultCols].slice(0, numCols);
+
+    const accent = b.accent || '#7c3aed';
+    const color  = b.color  || '#0a0a0a';
+    const radius = b.radius || '12px';
+
+    const colsHtml = activeCols.map(col => {
+        const colBg = col.bg || b.colBg || 'transparent';
+        return `<div style="flex:1;min-width:${isMobile?'100%':'200px'};background:${colBg};border-radius:${colBg!=='transparent'?radius:'0'};padding:${colBg!=='transparent'?'28px 24px':'12px 0'};${b.bordered?`border:1px solid rgba(0,0,0,0.08);`:''}">
+            ${col.icon ? `<div style="font-size:2rem;margin-bottom:12px;">${col.icon}</div>` : ''}
+            ${col.imgUrl ? `<img src="${col.imgUrl}" style="width:100%;border-radius:8px;margin-bottom:16px;display:block;" alt="">` : ''}
+            ${col.title ? `<h3 style="font-size:1.15rem;font-weight:700;color:${color};margin:0 0 10px;">${col.title}</h3>` : ''}
+            ${col.body   ? `<p style="font-size:0.9rem;color:${color};opacity:0.7;line-height:1.65;margin:0;">${col.body}</p>` : ''}
+            ${col.btnLabel ? `<a onclick="return false;" style="display:inline-block;margin-top:16px;text-decoration:none;background:${accent};color:#fff;padding:8px 18px;border-radius:6px;font-size:0.85rem;font-weight:600;">${col.btnLabel}</a>` : ''}
+        </div>`;
+    }).join('');
+
+    return `<div style="padding:${b.blockPadding||'60px 0'};">
+        ${b.title ? `<div style="text-align:center;margin-bottom:40px;"><h2 style="font-size:2rem;font-weight:800;color:${color};margin:0;">${b.title}</h2></div>` : ''}
+        <div style="display:flex;flex-wrap:${isMobile?'wrap':'nowrap'};gap:${gap};align-items:${vAlign};">
+            ${colsHtml}
+        </div>
+    </div>`;
+}
+
+function renderColumnsProps(b) {
+    const numCols = b.numCols || 2;
+    const activeCols = b.cols && b.cols.length >= numCols ? b.cols.slice(0,numCols) : Array.from({length:numCols},(_,i)=>({title:`Column ${i+1}`,body:'Content here',icon:''}));
+    return `
+        <div class="section-title" style="margin-top:0;">Layout</div>
+        <div class="input-group"><label class="label">Number of Columns</label>
+            <select class="select" onchange="updateProp('numCols',parseInt(this.value)); clearCols()">
+                ${[2,3,4].map(n=>`<option value="${n}" ${numCols===n?'selected':''}>${n} Columns</option>`).join('')}
+            </select>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Column Gap</label><input type="text" class="input" value="${b.colGap||'24px'}" oninput="updateProp('colGap',this.value)"></div>
+            <div class="input-group"><label class="label">V Align</label><select class="select" onchange="updateProp('vAlign',this.value)">
+                ${['stretch','flex-start','center','flex-end'].map(a=>`<option value="${a}" ${b.vAlign===a?'selected':''}>${a.replace('flex-','')}</option>`).join('')}
+            </select></div>
+        </div>
+        <div class="input-group"><label class="label">Section Title</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title',this.value)"></div>
+        <div class="input-group-row"><label class="label">Show Borders</label><input type="checkbox" ${b.bordered?'checked':''} onchange="updateProp('bordered',this.checked)"></div>
+
+        <div class="section-title">Columns</div>
+        ${activeCols.map((col,i) => `
+            <div style="background:var(--bg-surface);padding:10px;border-radius:10px;border:1px solid var(--border);margin-bottom:8px;">
+                <div style="font-size:10px;font-weight:700;color:var(--text-lo);margin-bottom:8px;text-transform:uppercase;">Column ${i+1}</div>
+                <div class="input-group"><label class="label">Icon/Emoji</label><input type="text" class="input" value="${col.icon||''}" oninput="updateColProp(${i},'icon',this.value)"></div>
+                <div class="input-group"><label class="label">Title</label><input type="text" class="input" value="${col.title||''}" oninput="updateColProp(${i},'title',this.value)"></div>
+                <div class="input-group"><label class="label">Body</label><textarea class="textarea" oninput="updateColProp(${i},'body',this.value)">${col.body||''}</textarea></div>
+                <div class="input-group"><label class="label">Button</label><input type="text" class="input" value="${col.btnLabel||''}" placeholder="Optional" oninput="updateColProp(${i},'btnLabel',this.value)"></div>
+            </div>
+        `).join('')}
+
+        <div class="section-title">Colors</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Accent</label><input type="color" class="color-input" value="${b.accent||'#7c3aed'}" oninput="updateProp('accent',this.value)"></div>
+            <div class="input-group"><label class="label">Text</label><input type="color" class="color-input" value="${b.color||'#0a0a0a'}" oninput="updateProp('color',this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Column Background</label><input type="color" class="color-input" value="${b.colBg||'#f8f8f8'}" oninput="updateProp('colBg',this.value)"></div>
+    `;
+}
+
+function updateColProp(idx, key, val) {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    const numCols = b.numCols || 2;
+    if (!b.cols || b.cols.length < numCols) b.cols = Array.from({length:numCols},(_,i)=>({title:`Column ${i+1}`,body:'Content here',icon:''}));
+    b.cols[idx][key] = val; renderCanvas(); scheduleSave();
+}
+function clearCols() {
+    const b = blocks.find(x=>x.id===selectedId); if(!b) return;
+    b.cols = []; render(); scheduleSave();
+}

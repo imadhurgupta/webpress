@@ -1,0 +1,97 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Management Portal{% endblock %}
+{% block nav_admin_portal %}text-white bg-slate-800/50{% endblock %}
+{% block icon_admin_portal %}text-indigo-400{% endblock %}
+{% block page_title %}Management Portal{% endblock %}
+{% block page_subtitle %}Administrative overview of the WebPress platform.{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <div class="group bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/50 hover:border-indigo-500/50 p-6 rounded-3xl transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <span class="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">+12%</span>
+        </div>
+        <div class="text-3xl font-bold text-white mb-1">{{ stats.total_users }}</div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Total Users</div>
+        <a href="{% url 'manage_users' %}" class="mt-4 inline-flex items-center text-indigo-400 hover:text-indigo-300 text-xs font-bold gap-1 transition-all group-hover:gap-2">Manage Users &rarr;</a>
+    </div>
+
+    <div class="group bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/50 hover:border-cyan-500/50 p-6 rounded-3xl transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            </div>
+            <span class="text-indigo-500 text-xs font-bold bg-indigo-500/10 px-2 py-1 rounded">Active</span>
+        </div>
+        <div class="text-3xl font-bold text-white mb-1">{{ stats.total_websites }}</div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Active Websites</div>
+    </div>
+
+    <div class="group bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/50 hover:border-amber-500/50 p-6 rounded-3xl transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+            </div>
+            <span class="text-slate-400 text-xs font-bold bg-slate-500/10 px-2 py-1 rounded">Repo</span>
+        </div>
+        <div class="text-3xl font-bold text-white mb-1">{{ stats.total_plugins }}</div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Installed Plugins</div>
+        <a href="{% url 'manage_plugins' %}" class="mt-4 inline-flex items-center text-indigo-400 hover:text-indigo-300 text-xs font-bold gap-1 transition-all group-hover:gap-2">Repository &rarr;</a>
+    </div>
+
+    <div class="group bg-slate-800/40 hover:bg-slate-800/60 border border-slate-700/50 hover:border-emerald-500/50 p-6 rounded-3xl transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </div>
+            <span class="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">Live</span>
+        </div>
+        <div class="text-3xl font-bold text-white mb-1">{{ stats.active_domains }}</div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Custom Domains</div>
+        <a href="{% url 'manage_domains' %}" class="mt-4 inline-flex items-center text-indigo-400 hover:text-indigo-300 text-xs font-bold gap-1 transition-all group-hover:gap-2">Configure &rarr;</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-700/50 bg-slate-900/50">
+            <h3 class="font-bold text-white">Recent Users</h3>
+        </div>
+        <div class="divide-y divide-slate-700/50">
+            {% for u in recent_users %}
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-800/60 transition-colors">
+                <div>
+                    <div class="font-semibold text-sm text-white">{{ u.username }}</div>
+                    <div class="text-xs text-slate-400">{{ u.email }}</div>
+                </div>
+                <div class="text-xs text-slate-500">{{ u.date_joined|date:"M d, Y" }}</div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-4 text-slate-500 text-sm">No users found.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-700/50 bg-slate-900/50">
+            <h3 class="font-bold text-white">Recent Websites</h3>
+        </div>
+        <div class="divide-y divide-slate-700/50">
+            {% for site in recent_websites %}
+            <div class="px-6 py-4 flex justify-between items-center hover:bg-slate-800/60 transition-colors">
+                <div>
+                    <div class="font-semibold text-sm text-white">{{ site.name }}</div>
+                    <div class="text-xs text-slate-400">By {{ site.user.username }}</div>
+                </div>
+                <div class="text-xs text-slate-500">{{ site.created_at|date:"M d, Y" }}</div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-4 text-slate-500 text-sm">No websites found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

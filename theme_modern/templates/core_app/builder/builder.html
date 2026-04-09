@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebPress — Builder</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base:    #0f172a;
+            --bg-panel:   #1e293b;
+            --bg-surface: #0f172a;
+            --bg-hover:   rgba(255,255,255,0.05);
+            --violet:     #6366f1;
+            --violet-dim: rgba(99,102,241,0.12);
+            --cyan:       #06b6d4;
+            --text-hi:    #ffffff;
+            --text-mid:   #94a3b8;
+            --text-lo:    #64748b;
+            --border:     rgba(255,255,255,0.08);
+            --border-lit: rgba(99,102,241,0.5);
+            --radius-s:   6px;
+            --radius-m:   10px;
+            --radius-l:   16px;
+            --header-h:   52px;
+            --bg-card:    rgba(255,255,255,0.03);
+            /* Compat aliases used in JS-generated HTML */
+            --primary:    #6366f1;
+            --primary-soft: rgba(99,102,241,0.12);
+            --text-dim:   #94a3b8;
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg-base); color: var(--text-hi); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+
+        /* ── HEADER ─────────────────────────────────── */
+        .builder-header { height: var(--header-h); background: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 10px; flex-shrink: 0; z-index: 200; }
+        .brand-mark { width: 28px; height: 28px; background: linear-gradient(135deg, var(--violet), var(--cyan)); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; color: #fff; cursor: pointer; flex-shrink: 0; }
+        .h-divider { width: 1px; height: 18px; background: var(--border); }
+        .header-tool { background: none; border: none; color: var(--text-mid); padding: 6px 8px; border-radius: var(--radius-s); cursor: pointer; display: flex; align-items: center; font-size: 14px; transition: 0.15s; }
+        .header-tool:hover { background: var(--bg-hover); color: var(--text-hi); }
+        .header-breadcrumb { margin: 0 auto; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.15s; min-width: 240px; justify-content: space-between; }
+        .header-breadcrumb:hover { border-color: var(--border-lit); }
+        .breadcrumb-title { font-size: 12px; font-weight: 500; color: var(--text-hi); }
+        .breadcrumb-hint { font-size: 10px; color: var(--text-lo); }
+        .btn-ghost { background: none; border: 1px solid var(--border); color: var(--text-mid); padding: 5px 12px; border-radius: var(--radius-s); cursor: pointer; font-size: 11px; font-weight: 500; transition: 0.15s; }
+        .btn-ghost:hover { border-color: var(--border-lit); color: var(--text-hi); }
+        .btn-publish { background: linear-gradient(135deg, var(--violet), #6d28d9); border: none; color: #fff; padding: 6px 16px; border-radius: var(--radius-s); cursor: pointer; font-size: 11px; font-weight: 600; box-shadow: 0 0 14px rgba(124,58,237,0.35); transition: 0.2s; }
+        .btn-publish:hover { box-shadow: 0 0 22px rgba(124,58,237,0.65); transform: translateY(-1px); }
+
+        /* ── WORKSPACE ───────────────────────────────── */
+        .workspace { display: flex; flex: 1; overflow: hidden; }
+
+        /* ── LEFT SIDEBAR ────────────────────────────── */
+        .sidebar-left { width: 270px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 8px; }
+        .sidebar-tab { background: none; border: none; padding: 12px 5px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-lo); cursor: pointer; position: relative; transition: 0.15s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; flex: 1; min-width: 0; }
+        .sidebar-tab.active { color: var(--violet); }
+        .sidebar-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--cyan); border-radius: 2px 2px 0 0; }
+        .sidebar-content { flex: 1; overflow-y: auto; display: none; padding: 12px; }
+        .sidebar-content.active { display: block; }
+        .sidebar-search { width: 100%; padding: 7px 11px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-s); color: var(--text-hi); font-size: 12px; margin-bottom: 14px; outline: none; }
+        .sidebar-search:focus { border-color: var(--border-lit); }
+        .sidebar-search::placeholder { color: var(--text-lo); }
+        .sidebar-category { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-lo); font-weight: 700; margin: 14px 0 8px 2px; }
+        .block-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .block-item { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-m); cursor: pointer; transition: 0.2s; gap: 5px; }
+        .block-item:hover { background: var(--violet-dim); border-color: var(--border-lit); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .block-icon { font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .block-icon svg { width: 20px; height: 20px; stroke: var(--text-mid); }
+        .block-item:hover .block-icon svg { stroke: var(--violet); }
+        .header-tool svg { width: 16px; height: 16px; stroke: currentColor; }
+        .block-label { font-size: 9px; color: var(--text-mid); font-weight: 500; text-align: center; }
+        .block-item:hover .block-label { color: var(--text-hi); }
+
+        /* ── CANVAS ──────────────────────────────────── */
+        .canvas-area { flex: 1; overflow-y: auto; background: var(--bg-base); background-image: radial-gradient(circle at 20% 20%, rgba(124,58,237,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(6,182,212,0.04) 0%, transparent 50%), linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px; display: flex; justify-content: center; padding: 30px 24px; }
+        .canvas { width: 100%; background: #fff; border-radius: 4px; min-height: 100%; box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 32px 80px rgba(0,0,0,0.65); transform-origin: top center; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); }
+        .canvas.tablet { width: 768px; } .canvas.mobile { width: 390px; }
+        .live-block { position: relative; border: 2px solid transparent; transition: 0.15s; }
+        .live-block:hover { outline: 1px dashed rgba(124,58,237,0.45); outline-offset: -1px; }
+        .live-block.selected { outline: 2px solid var(--violet); outline-offset: -2px; z-index: 10; }
+        .block-tools { position: absolute; top: 0; right: 0; left: auto; background: var(--bg-panel); border-bottom: 1px solid var(--border-lit); border-left: 1px solid var(--border-lit); border-radius: 0 0 0 10px; display: none; box-shadow: -4px 4px 14px rgba(0,0,0,0.15); z-index: 1000; overflow: hidden; }
+        .live-block.selected .block-tools { display: flex; }
+        .tool-btn { background: none; border: none; color: var(--text-mid); padding: 8px 12px; cursor: pointer; font-size: 13px; border-right: 1px solid var(--border); transition: 0.12s; }
+        .tool-btn:last-child { border-right: none; } .tool-btn:hover { background: var(--bg-hover); color: var(--text-hi); }
+
+        /* ── RIGHT PROPERTIES ────────────────────────── */
+        .sidebar-right { width: 270px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .props-header { padding: 13px 16px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-mid); display: flex; align-items: center; gap: 8px; }
+        .props-header::before { content: ''; width: 3px; height: 14px; background: linear-gradient(var(--violet), var(--cyan)); border-radius: 2px; }
+        .props-content { flex: 1; overflow-y: auto; padding: 14px; }
+
+        /* ── FORMS ───────────────────────────────────── */
+        .input-group { margin-bottom: 14px; }
+        .input-group .label { display: block; font-size: 9px; color: var(--text-lo); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+        .input, .select, .textarea { width: 100%; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-hi); padding: 7px 10px; border-radius: var(--radius-s); font-size: 12px; outline: none; transition: 0.15s; font-family: inherit; }
+        .textarea { resize: vertical; } .input:focus, .select:focus, .textarea:focus { border-color: var(--border-lit); }
+        .color-input { width: 100%; height: 30px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-s); cursor: pointer; padding: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .input-group-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .section-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-lo); margin: 18px 0 10px; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* ── MODALS ──────────────────────────────────── */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .modal { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-l); width: 90%; max-width: 580px; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(99,102,241,0.25); }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(6,182,212,0.06)); }
+        .modal-header h3 { font-size: 14px; font-weight: 700; }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+        .tabs { display: flex; border-bottom: 1px solid var(--border); }
+        .tab { flex: 1; padding: 11px 8px; border: none; background: none; color: var(--text-lo); cursor: pointer; font-weight: 600; font-size: 12px; border-bottom: 2px solid transparent; transition: 0.15s; }
+        .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+        .props-tabs { display: flex; border-bottom: 1px solid var(--border); }
+
+        /* ── UTILITY ─────────────────────────────────── */
+        .btn-primary { background: linear-gradient(135deg, var(--violet), #6d28d9); color: #fff; border: none; padding: 8px 18px; border-radius: var(--radius-s); font-weight: 600; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-primary:hover { box-shadow: 0 0 16px rgba(124,58,237,0.5); }
+        .sortable-ghost { opacity: 0.3; border: 2px dashed var(--violet); }
+        .pattern-item { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 14px; cursor: pointer; margin-bottom: 8px; transition: 0.2s; }
+        .pattern-item:hover { border-color: var(--border-lit); background: var(--violet-dim); }
+        #save-status { font-size: 11px; font-weight: 500; color: var(--cyan); }
+        ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .seo-tab-content, .prop-tab-content {}
+        .btn-launch { background: linear-gradient(135deg, var(--violet), #6d28d9); color: #fff; border: none; padding: 7px 14px; border-radius: var(--radius-s); cursor: pointer; font-size: 11px; font-weight: 600; width: 100%; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <header class="builder-header">
+        <!-- Left: brand + tools -->
+        <div class="brand-mark" onclick="location.href='{% url 'my_websites' %}'" title="Back to Dashboard">WP</div>
+        <div class="h-divider"></div>
+        <button class="header-tool" title="Undo"><i data-lucide="undo-2"></i></button>
+        <button class="header-tool" title="Redo"><i data-lucide="redo-2"></i></button>
+        <button class="header-tool" title="Pages Menu" onclick="document.getElementById('pagesListModal').style.display='flex'"><i data-lucide="file-stack"></i></button>
+        <button class="header-tool" title="Add New Page" onclick="document.getElementById('createPageModal').style.display='flex'"><i data-lucide="file-plus"></i></button>
+        <div id="save-status" style="display:none; margin-left:6px;">Saved</div>
+
+        <!-- Center: breadcrumb / page selector -->
+        <div class="header-breadcrumb" onclick="openSeoModal()">
+            <span class="breadcrumb-title">{{ page.title }}</span>
+            <span class="breadcrumb-hint">Ctrl+K</span>
+        </div>
+
+        <!-- Right: device + actions -->
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button class="header-tool" title="Desktop view" onclick="setDevice('desktop', this)"><i data-lucide="monitor"></i></button>
+            <button class="header-tool" title="Mobile view" onclick="setDevice('mobile', this)"><i data-lucide="smartphone"></i></button>
+            <div class="h-divider"></div>
+            <button class="header-tool" title="Settings" onclick="openSettingsModal()"><i data-lucide="settings"></i></button>
+            <button class="btn-ghost" onclick="scheduleSave()">Save</button>
+            <button class="btn-ghost" onclick="window.open('{% url 'preview_site' site.id page.id %}', '_blank')">Preview</button>
+            <button onclick="togglePublish()" id="publish-btn" class="btn-publish">{% if site.published %}Unpublish{% else %}Publish{% endif %}</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <aside class="sidebar-left">
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" onclick="switchSidebarTab(event, 'blocks')"><i data-lucide="layout" style="width:14px;height:14px;margin-bottom:2px;"></i>Blocks</button>
+                <button class="sidebar-tab" onclick="switchSidebarTab(event, 'patterns')"><i data-lucide="layers" style="width:14px;height:14px;margin-bottom:2px;"></i>Patterns</button>
+                <button class="sidebar-tab" onclick="switchSidebarTab(event, 'plugins')"><i data-lucide="puzzle" style="width:14px;height:14px;margin-bottom:2px;"></i>Plugins</button>
+                <button class="sidebar-tab" onclick="switchSidebarTab(event, 'media')"><i data-lucide="image" style="width:14px;height:14px;margin-bottom:2px;"></i>Media</button>
+            </div>
+
+            <div id="sidebar-blocks" class="sidebar-content active">
+                <input type="text" class="sidebar-search" id="block-search" placeholder="Search blocks..." onkeyup="filterBlocks(this.value)">
+
+                <div class="sidebar-category">Text &amp; Content</div>
+                <div class="block-grid">
+                    <div class="block-item" onclick="addBlock('text')"><i data-lucide="pilcrow" class="block-icon"></i><span class="block-label">Paragraph</span></div>
+                    <div class="block-item" onclick="addBlock('heading')"><i data-lucide="heading" class="block-icon"></i><span class="block-label">Heading</span></div>
+                    <div class="block-item" onclick="addBlock('list')"><i data-lucide="list" class="block-icon"></i><span class="block-label">List</span></div>
+                    <div class="block-item" onclick="addBlock('quote')"><i data-lucide="quote" class="block-icon"></i><span class="block-label">Quote</span></div>
+                    <div class="block-item" onclick="addBlock('table')"><i data-lucide="table" class="block-icon"></i><span class="block-label">Table</span></div>
+                    <div class="block-item" onclick="addBlock('code')"><i data-lucide="code-2" class="block-icon"></i><span class="block-label">Code</span></div>
+                    <div class="block-item" onclick="addBlock('faq')"><i data-lucide="help-circle" class="block-icon"></i><span class="block-label">FAQ</span></div>
+                    <div class="block-item" onclick="addBlock('contact')"><i data-lucide="mail" class="block-icon"></i><span class="block-label">Contact</span></div>
+                    <div class="block-item" onclick="addBlock('testimonials')"><i data-lucide="message-square" class="block-icon"></i><span class="block-label">Testimonials</span></div>
+                </div>
+
+                <div class="sidebar-category">Media</div>
+                <div class="block-grid">
+                    <div class="block-item" onclick="addBlock('image')"><i data-lucide="image" class="block-icon"></i><span class="block-label">Image</span></div>
+                    <div class="block-item" onclick="addBlock('gallery')"><i data-lucide="layout-grid" class="block-icon"></i><span class="block-label">Gallery</span></div>
+                    <div class="block-item" onclick="addBlock('cover')"><i data-lucide="layers" class="block-icon"></i><span class="block-label">Cover</span></div>
+                    <div class="block-item" onclick="addBlock('mediatext')"><i data-lucide="columns-2" class="block-icon"></i><span class="block-label">Media+Text</span></div>
+                    <div class="block-item" onclick="addBlock('video')"><i data-lucide="play-circle" class="block-icon"></i><span class="block-label">Video</span></div>
+                    <div class="block-item" onclick="addBlock('embed')"><i data-lucide="link" class="block-icon"></i><span class="block-label">Embed</span></div>
+                    <div class="block-item" onclick="addBlock('twitter')"><i data-lucide="twitter" class="block-icon"></i><span class="block-label">Twitter</span></div>
+                </div>
+
+                <div class="sidebar-category">Layout</div>
+                <div class="block-grid">
+                    <div class="block-item" onclick="addBlock('columns')"><i data-lucide="layout-panel-left" class="block-icon"></i><span class="block-label">Columns</span></div>
+                    <div class="block-item" onclick="addBlock('features')"><i data-lucide="grid-3x3" class="block-icon"></i><span class="block-label">Features</span></div>
+                    <div class="block-item" onclick="addBlock('pricing')"><i data-lucide="badge-dollar-sign" class="block-icon"></i><span class="block-label">Pricing</span></div>
+                    <div class="block-item" onclick="addBlock('hero')"><i data-lucide="zap" class="block-icon"></i><span class="block-label">Hero</span></div>
+                    <div class="block-item" onclick="addBlock('ctabanner')"><i data-lucide="megaphone" class="block-icon"></i><span class="block-label">CTA</span></div>
+                    <div class="block-item" onclick="addBlock('button')"><i data-lucide="mouse-pointer-click" class="block-icon"></i><span class="block-label">Button</span></div>
+                    <div class="block-item" onclick="addBlock('spacer')"><i data-lucide="separator-horizontal" class="block-icon"></i><span class="block-label">Spacer</span></div>
+                </div>
+
+                <div class="sidebar-category">Navigation &amp; Brand</div>
+                <div class="block-grid">
+                    <div class="block-item" onclick="addBlock('navbar')"><i data-lucide="navigation" class="block-icon"></i><span class="block-label">Navbar</span></div>
+                    <div class="block-item" onclick="addBlock('footer')"><i data-lucide="panel-bottom" class="block-icon"></i><span class="block-label">Footer</span></div>
+                    <div class="block-item" onclick="addBlock('social')"><i data-lucide="share-2" class="block-icon"></i><span class="block-label">Social</span></div>
+                </div>
+
+                <div class="sidebar-category">Auth &amp; Forms</div>
+                <div class="block-grid">
+                    <div class="block-item" onclick="addBlock('login')"><i data-lucide="log-in" class="block-icon"></i><span class="block-label">Login</span></div>
+                    <div class="block-item" onclick="addBlock('signup')"><i data-lucide="user-plus" class="block-icon"></i><span class="block-label">Signup</span></div>
+                    <div class="block-item" onclick="addBlock('profile')"><i data-lucide="user" class="block-icon"></i><span class="block-label">Profile</span></div>
+                </div>
+            </div>
+
+            <div id="sidebar-patterns" class="sidebar-content">
+                <div class="sidebar-category">Layout Patterns</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div class="pattern-item" onclick="loadPattern('hero-features')">
+                        <div style="font-weight:600; font-size:12px; margin-bottom:3px;">&#9889; Marketing Launch</div>
+                        <div style="font-size:10px; color:var(--text-lo);">Hero + Features + CTA</div>
+                    </div>
+                    <div class="pattern-item" onclick="loadPattern('social-proof')">
+                        <div style="font-weight:600; font-size:12px; margin-bottom:3px;">&#10024; Social Proof</div>
+                        <div style="font-size:10px; color:var(--text-lo);">Gallery + Testimonials</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="sidebar-media" class="sidebar-content">
+                <div class="sidebar-category">Media Library</div>
+                <div style="padding:10px;">
+                    <button class="btn-primary" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border:1px dashed rgba(255,255,255,0.4);" onclick="document.getElementById('sidebar-media-upload').click()">
+                        <i data-lucide="plus" style="width:14px; height:14px;"></i> Upload Media
+                    </button>
+                    <input type="file" id="sidebar-media-upload" style="display:none;" accept="image/*" onchange="uploadSidebarMedia(this.files[0])">
+                </div>
+                <div id="media-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px; padding:10px;">
+                    <!-- Uploaded media will appear here -->
+                </div>
+                <p id="no-media-hint" style="font-size:0.75rem; color:#666; text-align:center; padding:20px;">No media found. Upload images to your library.</p>
+            </div>
+
+            <div id="sidebar-plugins" class="sidebar-content">
+                <div class="sidebar-category">Available Plugins ({{ market_plugins|length }})</div>
+                <div style="display:flex; flex-direction:column; gap:8px; padding: 0 10px;">
+                {% for p in market_plugins %}
+                    <div class="plugin-card" id="plugin-{{ p.slug }}" style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px; transition:0.2s;">
+                        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <div style="width:32px; height:32px; background:var(--violet-dim); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--violet);">
+                                    {% if p.icon_svg %}
+                                        {{ p.icon_svg|safe }}
+                                    {% else %}
+                                        <i data-lucide="puzzle" style="width:16px; height:16px;"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div style="font-weight:700; font-size:12px;">{{ p.name }}</div>
+                                    <div style="font-size:10px; color:var(--text-lo);">Extends Core</div>
+                                </div>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="toggle-{{ p.id }}" onclick="togglePlugin('{{ p.id }}', this)" class="plugin-checkbox" style="cursor:pointer;">
+                            </div>
+                        </div>
+                        <p style="font-size:11px; color:var(--text-mid); line-height:1.4; margin-bottom:10px;">{{ p.description }}</p>
+                        <button class="btn-ghost" onclick="openPluginSettings('{{ p.id }}', '{{ p.slug }}')" style="width:100%; border:1px dashed var(--border); font-size:10px; padding:6px; background:rgba(0,0,0,0.02);">Configure Settings</button>
+                    </div>
+                {% empty %}
+                    <div style="padding:40px 20px; text-align:center; color:var(--text-lo); font-size:12px;">
+                        No plugins available yet.
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <main class="canvas-area" id="canvas-scroll" onclick="deselectBlock(event)" ondragover="event.preventDefault()" ondrop="const type = event.dataTransfer.getData('text/plain'); if(type) addBlock(type)">
+            <div class="canvas" id="canvas"></div>
+        </main>
+
+        <aside class="sidebar-right">
+            <div class="props-header" id="props-header">Properties</div>
+            <div class="props-content" id="props-body">
+                <div style="text-align:center; color:var(--text-dim); margin-top:4rem;">
+                    <p style="font-size:2rem; margin-bottom:10px;">🎨</p>
+                    <p>Select a block to edit</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- SEO Modal -->
+    <div id="seoModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="font-weight:800;">Page SEO & Settings</h3>
+                <button onclick="closeSeoModal()" style="background:none; border:none; color:var(--text-hi); font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchSeoTab(event, 'general')">General</button>
+                <button class="tab" onclick="switchSeoTab(event, 'social')">Social</button>
+                <button class="tab" onclick="switchSeoTab(event, 'advanced')">Advanced</button>
+            </div>
+            <div class="modal-body">
+                <div id="seo-general" class="seo-tab-content">
+                    <div class="input-group"><label class="label">Meta Title</label><input type="text" id="seo-title-input" class="input" oninput="updateSeo('title', this.value)"></div>
+                    <div class="input-group"><label class="label">Page Slug</label><input type="text" id="seo-slug-input" class="input" oninput="updateSeo('slug', this.value)"></div>
+                    <div class="input-group"><label class="label">Meta Description</label><textarea id="seo-desc-input" class="textarea" rows="3" oninput="updateSeo('description', this.value)"></textarea></div>
+                    <div class="input-group"><label class="label">Favicon URL</label><input type="text" id="seo-favicon-input" class="input" oninput="updateSeo('favicon', this.value)"></div>
+                    <div class="input-group">
+                        <label class="label">Content Type</label>
+                        <select id="seo-type-input" class="select" onchange="updateSeo('content_type', this.value)">
+                            <option value="page">Static Page</option>
+                            <option value="post">Chronological Post</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="seo-social" class="seo-tab-content" style="display:none;">
+                    <div class="input-group"><label class="label">OG Title</label><input type="text" id="seo-og-title-input" class="input" oninput="updateSeo('og_title', this.value)"></div>
+                    <div class="input-group"><label class="label">OG Description</label><textarea id="seo-og-desc-input" class="textarea" rows="3" oninput="updateSeo('og_description', this.value)"></textarea></div>
+                    <div class="input-group"><label class="label">OG Image URL</label><input type="text" id="seo-og-img-input" class="input" oninput="updateSeo('og_image', this.value)"></div>
+                    <div class="input-group"><label class="label">Featured Image</label><input type="text" id="seo-featured-img-input" class="input" oninput="updateSeo('featured_image', this.value)"></div>
+                </div>
+                <div id="seo-advanced" class="seo-tab-content" style="display:none;">
+                    <div class="input-group"><label class="label">Categories (Comma separated)</label><input type="text" id="seo-categories-input" class="input" oninput="updateSeo('categories', this.value.split(','))"></div>
+                    <div class="input-group"><label class="label">Tags (Comma separated)</label><input type="text" id="seo-tags-input" class="input" oninput="updateSeo('tags', this.value.split(','))"></div>
+                    <div class="input-group"><label class="label">Meta Keywords</label><input type="text" id="seo-keywords-input" class="input" oninput="updateSeo('keywords', this.value)"></div>
+                    <div class="input-group"><label class="label">Canonical URL</label><input type="text" id="seo-canonical-input" class="input" oninput="updateSeo('canonical_url', this.value)"></div>
+                    <div class="input-group">
+                        <label class="label">Robots Meta</label>
+                        <select id="seo-robots-input" class="select" onchange="updateSeo('robots_meta', this.value)">
+                            <option value="index, follow">Index, Follow</option>
+                            <option value="noindex, follow">Noindex, Follow</option>
+                            <option value="index, nofollow">Index, Nofollow</option>
+                            <option value="noindex, nofollow">Noindex, Nofollow</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeSeoModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal" style="max-width:500px;">
+            <div class="tabs">
+                <button class="tab active" onclick="switchSettingsTab(event, 'general')">General</button>
+                <button class="tab" onclick="switchSettingsTab(event, 'integrations')">Integrations</button>
+                <button class="tab" onclick="switchSettingsTab(event, 'advanced')">Advanced</button>
+            </div>
+            <div class="modal-body">
+                <div id="settings-general" class="settings-tab-content">
+                    <div class="input-group">
+                        <label class="label">Site Address (URL)</label>
+                        <input type="text" class="input" value="https://{{ site.slug }}.webpress.io" readonly>
+                        <div style="font-size:0.75rem; color:#10b981; margin-top:4px;">✓ SSL / HTTPS Enforced</div>
+                    </div>
+                    <div class="input-group">
+                        <label class="label">Permalink Structure</label>
+                        <select class="select"><option value="post-name">Post Name (SEO Friendly)</option></select>
+                    </div>
+                    <div class="input-group-row"><label class="label">Disable Pingbacks (Discussion)</label><input type="checkbox" checked></div>
+                </div>
+
+                <div id="settings-integrations" class="settings-tab-content" style="display:none;">
+                    <div style="margin-bottom:20px; padding:12px; background:var(--violet-dim); border-radius:8px; border:1px solid var(--border-lit);">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                            <span style="font-weight:700; font-size:13px;">Google Authentication</span>
+                        </div>
+                        <p style="font-size:11px; color:var(--text-mid);">Enable "Sign in with Google" for your website visitors by providing your OAuth credentials.</p>
+                    </div>
+                    <div class="input-group">
+                        <label class="label">Google Client ID</label>
+                        <input type="text" class="input" placeholder="xxxxx-xxxx.apps.googleusercontent.com" value="{{ site.google_client_id|default:'' }}">
+                    </div>
+                    <div class="input-group">
+                        <label class="label">Google Client Secret</label>
+                        <input type="password" class="input" placeholder="••••••••••••••••" value="{{ site.google_client_secret|default:'' }}">
+                    </div>
+                    <div class="input-group-row">
+                        <label class="label">Enable Social Sign-on</label>
+                        <input type="checkbox" {% if site.social_auth_enabled %}checked{% endif %}>
+                    </div>
+                </div>
+
+                <div id="settings-advanced" class="settings-tab-content" style="display:none;">
+                    <div class="input-group"><label class="label">Custom CSS (Header)</label><textarea class="textarea" rows="4" placeholder="/* Add custom styling */"></textarea></div>
+                    <div class="input-group"><label class="label">Custom Footer Scripts</label><textarea class="textarea" rows="4" placeholder="<script>...</script>"></textarea></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn-primary" onclick="closeSettingsModal()">Save</button></div>
+        </div>
+    </div>
+
+    <!-- Create Page Modal -->
+    <div id="createPageModal" class="modal-overlay">
+        <div class="modal" style="max-width:400px;">
+            <form action="{% url 'builder_create_page' site.id %}" method="POST" style="display:contents;">{% csrf_token %}
+                <div class="modal-header"><h3 style="font-weight:800;">Create New Page</h3></div>
+                <div class="modal-body">
+                    <div class="input-group"><label class="label">Page Title</label><input type="text" name="title" class="input" placeholder="e.g. Services" required></div>
+                </div>
+                <div class="modal-footer" style="gap:10px;">
+                    <button type="button" onclick="document.getElementById('createPageModal').style.display='none'" style="background:none; border:none; color:var(--text-hi); cursor:pointer;">Cancel</button>
+                    <button type="submit" class="btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pages List Modal -->
+    <div id="pagesListModal" class="modal-overlay">
+        <div class="modal" style="max-width:500px;">
+            <div class="modal-header">
+                <h3 style="font-weight:800;">Website Pages</h3>
+                <button onclick="document.getElementById('pagesListModal').style.display='none'" style="background:none; border:none; color:var(--text-hi); font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    {% for p in pages %}
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface); padding:10px 14px; border:1px solid var(--border); border-radius:8px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:36px; height:36px; background:var(--violet-dim); color:var(--violet); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:800;">{{ p.title|make_list|first|upper }}</div>
+                            <div>
+                                <div style="font-weight:700; color:var(--text-hi); font-size:13px;">{{ p.title }} {% if p.is_home %}<span style="font-size:9px; background:var(--cyan); color:white; padding:2px 6px; border-radius:4px; margin-left:6px;">HOME</span>{% endif %}</div>
+                                <div style="font-size:11px; color:var(--text-lo);">/{{ p.slug }}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <a href="{% url 'builder' site.id p.id %}" class="btn-ghost" style="text-decoration:none; display:flex; align-items:center; padding:6px 12px;">Edit</a>
+                            {% if request.user == site.user and pages.count > 1 and not p.is_home %}
+                            <form action="{% url 'builder_delete_page' site.id p.id %}" method="POST" style="margin:0;">{% csrf_token %}
+                                <button type="button" class="btn-ghost" style="color:#ef4444;" onclick="if(confirm('Are you sure you want to delete this page?')) this.closest('form').submit();">Delete</button>
+                            </form>
+                            {% endif %}
+                            {% if not p.is_home %}
+                            <form action="{% url 'builder_set_home_page' site.id p.id %}" method="POST" style="margin:0;">{% csrf_token %}
+                                <button type="button" class="btn-ghost" title="Set as Homepage" onclick="this.closest('form').submit();"><i data-lucide="home" style="width:12px;height:12px;"></i></button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="document.getElementById('pagesListModal').style.display='none'; document.getElementById('createPageModal').style.display='flex'">+ New Page</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plugin Settings Modal -->
+    <div id="pluginSettingsModal" class="modal-overlay">
+        <div class="modal" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 id="plugin-settings-title" style="font-weight:800;">Plugin Settings</h3>
+                <button onclick="document.getElementById('pluginSettingsModal').style.display='none'" style="background:none; border:none; color:var(--text-hi); font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" id="plugin-settings-body">
+                <!-- Dynamic Content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="savePluginSettings()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script id="page-data" type="application/json">{{ content_json|safe }}</script>
+    <script id="seo-data" type="application/json">
+    {
+        "title": "{{ page.seo_title|default:''|escapejs }}",
+        "slug": "{{ page.slug|default:''|escapejs }}",
+        "description": "{{ page.seo_description|default:''|escapejs }}",
+        "favicon": "{{ page.favicon|default:''|escapejs }}",
+        "og_title": "{{ page.og_title|default:''|escapejs }}",
+        "og_description": "{{ page.og_description|default:''|escapejs }}",
+        "og_image": "{{ page.og_image|default:''|escapejs }}",
+        "keywords": "{{ page.keywords|default:''|escapejs }}",
+        "canonical_url": "{{ page.canonical_url|default:''|escapejs }}",
+        "robots_meta": "{{ page.robots_meta|default:'index, follow'|escapejs }}"
+    }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        /* WebPress Hooks System (WP Action/Filter Mirror) */
+        const wpHooks = {
+            actions: {},
+            filters: {},
+            addAction(name, callback, priority = 10) {
+                if (!this.actions[name]) this.actions[name] = [];
+                this.actions[name].push({ callback, priority });
+                this.actions[name].sort((a,b) => a.priority - b.priority);
+            },
+            doAction(name, ...args) {
+                if (this.actions[name]) {
+                    this.actions[name].forEach(hook => hook.callback(...args));
+                }
+            },
+            addFilter(name, callback, priority = 10) {
+                if (!this.filters[name]) this.filters[name] = [];
+                this.filters[name].push({ callback, priority });
+                this.filters[name].sort((a,b) => a.priority - b.priority);
+            },
+            applyFilters(name, value, ...args) {
+                if (this.filters[name]) {
+                    this.filters[name].forEach(hook => {
+                        value = hook.callback(value, ...args);
+                    });
+                }
+                return value;
+            }
+        };
+
+        /* Modern WordPress 'theme.json' Simulation */
+        const themeData = {
+            settings: {
+                typography: {
+                    fontFamilies: [
+                        { name: 'Outfit (Modern)', value: 'Outfit, sans-serif' },
+                        { name: 'Inter (Pro)', value: 'Inter, sans-serif' },
+                        { name: 'Plus Jakarta', value: 'Plus Jakarta Sans, sans-serif' },
+                        { name: 'Playfair (Elegant)', value: 'Playfair Display, serif' }
+                    ],
+                    fontSizes: [
+                        { name: 'S', value: '0.875rem' },
+                        { name: 'M', value: '1rem' },
+                        { name: 'L', value: '1.25rem' },
+                        { name: 'XL', value: '2rem' },
+                        { name: 'XXL', value: '3.5rem' }
+                    ]
+                },
+                color: {
+                    palette: [
+                        { name: 'Primary', slug: 'primary', color: 'var(--primary)' },
+                        { name: 'Accent', slug: 'accent', color: 'var(--accent)' },
+                        { name: 'Dark', slug: 'dark', color: '#09090b' },
+                        { name: 'Light', slug: 'light', color: '#ffffff' },
+                        { name: 'Vivid Red', slug: 'vivid-red', color: '#ef4444' }
+                    ]
+                },
+                spacing: {
+                    units: ['px', 'rem', '%', 'vh'],
+                    presets: [0, 4, 8, 12, 16, 24, 32, 48, 64, 80, 96, 128]
+                }
+            }
+        };
+
+        const globalData = {
+            primaryColor: "{{ site.primary_color|default:'#6366f1' }}",
+            accentColor: "{{ site.accent_color|default:'#22d3ee' }}",
+            font: "{{ site.global_font|default:'Outfit' }}"
+        };
+
+        function updateGlobalStyle(key, val) {
+            globalData[key] = val;
+            const root = document.documentElement;
+            if (key === 'primaryColor') root.style.setProperty('--primary', val);
+            if (key === 'accentColor') root.style.setProperty('--accent', val);
+            if (key === 'font') root.style.setProperty('--font-main', val);
+            
+            // Auto-save global styles to website model (simulate wp_options)
+            fetch("{% url 'save_site_settings' site.id %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                body: JSON.stringify({ [key]: val })
+            });
+        }
+        {% include 'core_app/builder/blocks/navbar.html' %}
+        {% include 'core_app/builder/blocks/hero.html' %}
+        {% include 'core_app/builder/blocks/ctabanner.html' %}
+        {% include 'core_app/builder/blocks/features.html' %}
+        {% include 'core_app/builder/blocks/testimonials.html' %}
+        {% include 'core_app/builder/blocks/faq.html' %}
+        {% include 'core_app/builder/blocks/pricing.html' %}
+        {% include 'core_app/builder/blocks/contact.html' %}
+        {% include 'core_app/builder/blocks/footer.html' %}
+        {% include 'core_app/builder/blocks/text.html' %}
+        {% include 'core_app/builder/blocks/button.html' %}
+        {% include 'core_app/builder/blocks/spacer.html' %}
+        {% include 'core_app/builder/blocks/image.html' %}
+        {% include 'core_app/builder/blocks/gallery.html' %}
+        {% include 'core_app/builder/blocks/video.html' %}
+        {% include 'core_app/builder/blocks/embed.html' %}
+        {% include 'core_app/builder/blocks/twitter.html' %}
+        {% include 'core_app/builder/blocks/heading.html' %}
+        {% include 'core_app/builder/blocks/list.html' %}
+        {% include 'core_app/builder/blocks/quote.html' %}
+        {% include 'core_app/builder/blocks/table.html' %}
+        {% include 'core_app/builder/blocks/code.html' %}
+        {% include 'core_app/builder/blocks/cover.html' %}
+        {% include 'core_app/builder/blocks/mediatext.html' %}
+        {% include 'core_app/builder/blocks/columns.html' %}
+        {% include 'core_app/builder/blocks/social.html' %}
+        {% include 'core_app/builder/blocks/login.html' %}
+        {% include 'core_app/builder/blocks/signup.html' %}
+        {% include 'core_app/builder/blocks/profile.html' %}
+
+        const SAVE_URL = "{% url 'save_page' site.id page.id %}";
+        const PUBLISH_URL = "{% url 'toggle_publish_site' site.id %}";
+        const CSRF = "{{ csrf_token }}";
+
+        let blocks = [];
+        let pageSeo = {};
+        let selectedId = null;
+        let sitePages = [{% for p in pages %}{"id":"{{p.id}}", "title":"{{p.title|escapejs}}", "slug":"{{p.slug|escapejs}}", "is_home":{{p.is_home|yesno:"true,false"}} }{% if not forloop.last %},{% endif %}{% endfor %}];
+
+        let installedPlugins = {{ installed_plugins_json|safe|default:'{}' }};
+        let allPlugins = [
+            {% for p in market_plugins %}
+            { id: "{{ p.id }}", name: "{{ p.name|escapejs }}", slug: "{{ p.slug|escapejs }}", description: "{{ p.description|escapejs }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        try {
+            blocks = JSON.parse(document.getElementById('page-data').textContent) || [];
+            pageSeo = JSON.parse(document.getElementById('seo-data').textContent) || {};
+        } catch(e) { console.error("Load failed", e); }
+
+        function handleDragStart(e, type) { e.dataTransfer.setData('text/plain', type); }
+
+        function setDevice(mode, btn) {
+            document.getElementById('canvas').className = 'canvas ' + mode;
+            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            render();
+        }
+
+        function addBlock(type) {
+            wpHooks.doAction('beforeAddBlock', type);
+            const id = 'b_' + Math.random().toString(36).substr(2, 9);
+            let b = { 
+                id, type, 
+                bg: '#ffffff', color: '#18181b', 
+                vPadding: 80, padding: '80px 20px', 
+                gap: 0, borderRadius: 0, borderWidth: 0, borderColor: '#e2e8f0', shadow: 'none',
+                align: 'center' 
+            };
+            
+            // Allow plugins to filter the initial block data
+            b = wpHooks.applyFilters('blockInitialData', b);
+
+            if (type === 'navbar') {
+                b.brand = "WEBPRESS";
+                b.layout = 'classic';
+                b.design = 'glass';
+                b.bg = '#ffffff';
+                b.color = '#000000';
+                b.showButton = true;
+                b.btnLabel = "Get Started";
+                b.links = ['Home', 'Features', 'Pricing', 'Contact'];
+            } else if (type === 'hero') {
+                b.title = "Build Something Extraordinary";
+                b.subtitle = "Launch your dream website in minutes with our visual builder.";
+                b.bg = '#6366f1';
+                b.color = '#ffffff';
+                b.layout = 'split';
+                b.primaryBtn = "Get Started";
+                b.secondaryBtn = "Learn More";
+                b.sideImage = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop';
+            } else if (type === 'features') {
+                b.title = "Our Core Features";
+                b.subtitle = "Discover why leading brands choose WebPress to power their digital presence.";
+                b.columns = 3;
+                b.itemBg = '#f8fafc';
+            } else if (type === 'ctabanner') {
+                b.title = "Build the Future with WebPress";
+                b.subtitle = "Join 10,000+ companies using our visual engine to power their digital presence.";
+                b.bg = '#0f172a';
+                b.accent = '#6366f1';
+                b.primaryBtn = "Get Started Free";
+                b.showSecondary = true;
+            } else if (type === 'faq') {
+                b.title = "Common Questions";
+                b.showTitle = true;
+                b.bg = '#ffffff';
+                b.designMode = 'solid';
+            } else if (type === 'testimonials') {
+                b.title = "Customer Success Stories";
+                b.bg = '#f1f5f9';
+                b.designMode = 'glass';
+            } else if (type === 'video') {
+                b.url = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+                b.title = "Design in Motion";
+                b.shadowStyle = 'deep';
+            } else if (type === 'embed') {
+                b.code = '<iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM3M" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+                b.frameDesign = 'shadow';
+            } else if (type === 'twitter') {
+                b.tweetContent = "Building high-performance digital engines should be a standard, not an exception. ⚡️ #FutureStack";
+                b.userName = "WebPress Global";
+                b.handle = "webpress_hq";
+                b.designMode = 'x-dark';
+                b.verified = true;
+            } else if (type === 'heading') {
+                b.content = 'Your Amazing Heading';
+                b.tag = 'h2'; b.fontSize = '2.8rem'; b.fontWeight = '800';
+                b.align = 'center'; b.gradient = false;
+                b.blockPadding = '48px 0';
+            } else if (type === 'list') {
+                b.items = ['First item — edit me', 'Second item — add your content', 'Third item — remove or expand'];
+                b.listStyle = 'bullet'; b.iconColor = '#7c3aed'; b.color = '#0a0a0a';
+            } else if (type === 'quote') {
+                b.content = 'The best time to plant a tree was 20 years ago. The second best time is now.';
+                b.author = 'Proverb'; b.quoteStyle = 'card'; b.accent = '#7c3aed';
+                b.bg = '#ffffff'; b.color = '#0a0a0a';
+            } else if (type === 'table') {
+                b.headers = ['Feature', 'Basic', 'Pro', 'Enterprise'];
+                b.rows = [['Storage','10 GB','100 GB','Unlimited'],['Users','1','10','Unlimited'],['Support','Email','Priority','Dedicated']];
+                b.tableStyle = 'striped'; b.accent = '#7c3aed';
+            } else if (type === 'code') {
+                b.lang = 'javascript'; b.codeStyle = 'dark'; b.showLineNumbers = true;
+                b.code = 'function greet(name) {\n  return `Hello, ${name}! 👋`;\n}\n\nconsole.log(greet("WebPress"));';
+            } else if (type === 'cover') {
+                b.title = 'Beautiful Cover Block'; b.subtitle = 'Add an image background and compelling headline.';
+                b.height = '500px'; b.contentAlign = 'center'; b.gradStart = '#7c3aed'; b.gradEnd = '#1e1b4b';
+                b.overlayColor = 'rgba(0,0,0,0)';
+            } else if (type === 'mediatext') {
+                b.title = 'Powerful Feature Highlight'; b.label = 'WHY WEBPRESS';
+                b.content = 'Place an image and text side-by-side for elegant feature showcases or storytelling sections.';
+                b.imgUrl = 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80';
+                b.flip = false; b.accent = '#7c3aed'; b.shadow = true;
+            } else if (type === 'columns') {
+                b.numCols = 3; b.colBg = '#f8f8f8'; b.accent = '#7c3aed';
+                b.cols = [
+                    {title:'Design',body:'Craft pixel-perfect layouts with our visual editor.',icon:'🎨'},
+                    {title:'Build',body:'Assemble pages from powerful, reusable blocks.',icon:'⚡'},
+                    {title:'Launch',body:'Publish your site instantly with one click.',icon:'🚀'},
+                ];
+            } else if (type === 'social') {
+                b.iconStyle = 'circle'; b.iconBg = '#7c3aed'; b.iconColor = '#ffffff'; b.align = 'center';
+                b.socialLinks = [
+                    {platform:'twitter',   url:'#', label:'Twitter',   color:'#1DA1F2'},
+                    {platform:'instagram', url:'#', label:'Instagram', color:'#E1306C'},
+                    {platform:'linkedin',  url:'#', label:'LinkedIn',  color:'#0077B5'},
+                    {platform:'github',    url:'#', label:'GitHub',    color:'#24292e'},
+                ];
+            } else if (type === 'login') {
+                b.title = 'Welcome Back'; b.subtitle = 'Sign in to your account'; b.btnText = 'Login';
+                b.showForgot = true; b.showSignupHint = true; b.shadow = true; b.align = 'center';
+                b.apiEndpoint = '/auth-manager/api/login/{{ site.id }}/';
+            } else if (type === 'signup') {
+                b.title = 'Create an Account'; b.subtitle = 'Join us today and get started'; b.btnText = 'Sign Up';
+                b.showSocial = true; b.showLoginHint = true; b.shadow = true; b.align = 'center';
+                b.apiEndpoint = '/auth-manager/api/signup/{{ site.id }}/';
+            } else if (type === 'footer') {
+                b.bg = '#09090b';
+                b.textColor = '#ffffff';
+                b.brand = 'WEBPRESS';
+                b.description = 'Empowering creators with high-performance digital infrastructure.';
+                b.footerLayout = 'grid';
+                b.accent = '#6366f1';
+            }
+
+            const footerIdx = blocks.findIndex(x => x.type === 'footer');
+            if (footerIdx !== -1 && type !== 'footer') {
+                blocks.splice(footerIdx, 0, b);
+            } else if (type === 'footer') {
+                blocks = blocks.filter(x => x.type !== 'footer');
+                blocks.push(b);
+            } else {
+                blocks.push(b);
+            }
+
+            selectBlock(id);
+            render();
+            scheduleSave();
+        }
+
+        function deleteBlock(id) {
+            blocks = blocks.filter(b => b.id !== id);
+            if (selectedId === id) selectedId = null;
+            render();
+            scheduleSave();
+        }
+
+        function duplicateBlock(id) {
+            const idx = blocks.findIndex(b => b.id === id);
+            const copy = JSON.parse(JSON.stringify(blocks[idx]));
+            copy.id = 'b_' + Math.random().toString(36).substr(2, 9);
+            blocks.splice(idx+1, 0, copy);
+            render();
+            scheduleSave();
+        }
+
+        function moveBlock(id, dir) {
+            const idx = blocks.findIndex(b => b.id === id);
+            const next = idx + dir;
+            if (next < 0 || next >= blocks.length) return;
+            [blocks[idx], blocks[next]] = [blocks[next], blocks[idx]];
+            render();
+            scheduleSave();
+        }
+
+        function selectBlock(id) {
+            selectedId = id;
+            render();
+        }
+
+        function deselectBlock(e) {
+            if (e.target.id === 'canvas-scroll' || e.target.id === 'canvas') {
+                selectedId = null;
+                render();
+            }
+        }
+
+        function updateProp(a, bParam, c) {
+            let id = selectedId, key = a, val = bParam;
+            if (arguments.length === 3) {
+                id = a; key = bParam; val = c;
+            }
+            const b = blocks.find(x => x.id === id);
+            if (!b) return;
+            b[key] = val;
+            renderCanvas();
+            
+            // Re-render props panel for style selections, layouts, and toggles so the active button highlight updates
+            const autoRenderKeys = [
+                'layout', 'design', 'behavior', 'functional', 
+                'showButton', 'showCart', 'navStyle', 'tableStyle', 
+                'tableWidth', 'density', 'footerLayout', 'codeStyle', 
+                'quoteStyle', 'listStyle', 'iconStyle', 'frameDesign', 
+                'designMode', 'shadowStyle', 'fullWidth', 'billingCycle',
+                'cardDesign', 'iconType', 'showGlowFeatured', 'showIntervalToggle',
+                'hoverEffect', 'showLinks', 'columns'
+            ];
+            
+            if (autoRenderKeys.includes(key) || typeof val === 'boolean') {
+                renderProps();
+            }
+            
+            scheduleSave();
+        }
+
+        function renderCanvas() {
+            const host = document.getElementById('canvas');
+            if (blocks.length === 0) {
+                host.innerHTML = `<div style="padding:100px; text-align:center; color:#888;"><h3>Start building by adding blocks</h3></div>`;
+                return;
+            }
+            const isMobile = host.classList.contains('mobile');
+            const isTablet = host.classList.contains('tablet');
+            const isSmall = isMobile || isTablet;
+
+            host.innerHTML = blocks.map((b, idx) => {
+                const sel = b.id === selectedId ? 'selected' : '';
+                const isFirst = idx === 0 ? 'first-block' : '';
+                let content = '';
+                switch(b.type) {
+                    case 'navbar': content = renderNavbar(b, isMobile, isTablet, isSmall, sitePages); break;
+                    case 'hero': content = renderHero(b, isMobile, isTablet); break;
+                    case 'ctabanner': content = renderCta(b, isMobile, isTablet); break;
+                    case 'features': content = renderFeatures(b, isMobile, isTablet); break;
+                    case 'testimonials': content = renderTestimonials(b, isMobile, isTablet); break;
+                    case 'faq': content = renderFaq(b, isMobile, isTablet); break;
+                    case 'pricing': content = renderPricing(b, isMobile, isTablet); break;
+                    case 'contact': content = renderContact(b, isMobile, isTablet); break;
+                    case 'footer': content = renderFooter(b, isMobile, isTablet); break;
+                    case 'text': content = renderText(b, isMobile, isTablet); break;
+                    case 'button': content = renderButton(b, isMobile, isTablet); break;
+                    case 'spacer': content = renderSpacer(b, isMobile, isTablet); break;
+                    case 'image': content = renderImage(b, isMobile, isTablet); break;
+                    case 'gallery': content = renderGallery(b, isMobile, isTablet); break;
+                    case 'video': content = renderVideo(b, isMobile, isTablet); break;
+                    case 'embed': content = renderEmbed(b, isMobile, isTablet); break;
+                    case 'twitter':    content = renderTwitter(b, isMobile, isTablet); break;
+                    case 'heading':    content = renderHeading(b, isMobile); break;
+                    case 'list':       content = renderList(b, isMobile); break;
+                    case 'quote':      content = renderQuote(b, isMobile); break;
+                    case 'table':      content = renderTable(b, isMobile); break;
+                    case 'code':       content = renderCode(b, isMobile); break;
+                    case 'cover':      content = renderCover(b, isMobile); break;
+                    case 'mediatext':  content = renderMediaText(b, isMobile); break;
+                    case 'columns':    content = renderColumns(b, isMobile); break;
+                    case 'social':     content = renderSocial(b, isMobile); break;
+                    case 'login':      content = renderLogin(b, isMobile); break;
+                    case 'signup':     content = renderSignup(b, isMobile); break;
+                    case 'profile':    content = renderProfile(b, isMobile, isTablet); break;
+                    default: content = `<div style="padding:60px; text-align:center; background:${b.bg||'#f4f4f5'}; color:${b.color||'#111'}; border:2px dashed #ccc; border-radius:12px;"><h3>Block Type: ${b.type}</h3><p>This block type is currently not supported or has been migrated. Delete it and add a new one.</p></div>`; break;
+                }
+                return `<div class="live-block ${sel} ${isFirst}" data-id="${b.id}" onclick="event.stopPropagation(); selectBlock('${b.id}')">
+                    <div class="block-tools">
+                        <button class="tool-btn" onclick="moveBlock('${b.id}', -1)">↑</button>
+                        <button class="tool-btn" onclick="moveBlock('${b.id}', 1)">↓</button>
+                        <button class="tool-btn" onclick="duplicateBlock('${b.id}')">⧉</button>
+                        <button class="tool-btn" onclick="deleteBlock('${b.id}')" style="background:#ef4444;">&times;</button>
+                    </div>
+                    ${content}
+                </div>`;
+            }).join('');
+        }
+
+        function renderProps() {
+            const body = document.getElementById('props-body');
+            const header = document.getElementById('props-header');
+            const b = blocks.find(x => x.id === selectedId);
+            if (!b) {
+                header.innerText = 'Properties';
+                body.innerHTML = `<div style="text-align:center; color:var(--text-dim); margin-top:4rem;"><p style="font-size:2rem; margin-bottom:10px;">🎨</p><p>Select a block to edit</p></div>`;
+                return;
+            }
+            header.innerText = b.type.toUpperCase() + ' SETTINGS';
+            
+            let html = `
+                <div class="props-tabs" style="display:flex; border-bottom:1px solid var(--border); margin-bottom:15px;">
+                    <button class="tab active" style="flex:1; padding:10px; font-size:0.75rem;" onclick="switchPropTab(event, 'content')">Content</button>
+                    <button class="tab" style="flex:1; padding:10px; font-size:0.75rem;" onclick="switchPropTab(event, 'styles')">Design</button>
+                </div>
+                <div id="prop-content" class="prop-tab-content">
+                    <div class="section-title">Core Settings</div>
+            `;
+
+            if (b.type === 'navbar') html += renderNavbarProps(b, sitePages);
+            else if (b.type === 'hero') html += renderHeroProps(b);
+            else if (b.type === 'ctabanner') html += renderCtaProps(b);
+            else if (b.type === 'features') html += renderFeaturesProps(b);
+            else if (b.type === 'testimonials') html += renderTestimonialsProps(b);
+            else if (b.type === 'faq') html += renderFaqProps(b);
+            else if (b.type === 'pricing') html += renderPricingProps(b);
+            else if (b.type === 'contact') html += renderContactProps(b);
+            else if (b.type === 'footer') html += renderFooterProps(b);
+            else if (b.type === 'text') html += renderTextProps(b);
+            else if (b.type === 'button') html += renderButtonProps(b);
+            else if (b.type === 'spacer') html += renderSpacerProps(b);
+            else if (b.type === 'image') html += renderImageProps(b);
+            else if (b.type === 'gallery') html += renderGalleryProps(b);
+            else if (b.type === 'video') html += renderVideoProps(b);
+            else if (b.type === 'embed') html += renderEmbedProps(b);
+            else if (b.type === 'twitter')   html += renderTwitterProps(b);
+            else if (b.type === 'heading')    html += renderHeadingProps(b);
+            else if (b.type === 'list')       html += renderListProps(b);
+            else if (b.type === 'quote')      html += renderQuoteProps(b);
+            else if (b.type === 'table')      html += renderTableProps(b);
+            else if (b.type === 'code')       html += renderCodeProps(b);
+            else if (b.type === 'cover')      html += renderCoverProps(b);
+            else if (b.type === 'mediatext')  html += renderMediaTextProps(b);
+            else if (b.type === 'columns')    html += renderColumnsProps(b);
+            else if (b.type === 'social')     html += renderSocialProps(b);
+            else if (b.type === 'login')      html += renderLoginProps(b, sitePages);
+            else if (b.type === 'signup')     html += renderSignupProps(b, sitePages);
+            else if (b.type === 'profile')    html += renderProfileProps(b, sitePages);
+            
+            html += `</div><div id="prop-styles" class="prop-tab-content" style="display:none;">${renderDesignTools(b)}</div>`;
+            body.innerHTML = html;
+        }
+
+        function switchPropTab(e, id) {
+            document.querySelectorAll('.prop-tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.props-tabs .tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`prop-${id}`).style.display = 'block';
+            e.target.classList.add('active');
+        }
+
+        function renderDesignTools(b) {
+            return `
+                <div class="sidebar-category">Dimensions</div>
+                <div class="input-group">
+                    <label class="label">Vertical Padding (${b.vPadding||'80'}px)</label>
+                    <input type="range" min="0" max="250" value="${b.vPadding||80}" oninput="updateProp('${b.id}', 'vPadding', this.value); updateProp('${b.id}', 'padding', this.value+'px 20px')">
+                </div>
+                <div class="input-group">
+                    <label class="label">Block Spacing (Gap)</label>
+                    <input type="number" class="input" value="${b.gap||0}" oninput="updateProp('${b.id}', 'gap', this.value)">
+                </div>
+
+                <div class="sidebar-category">Borders & Radius</div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="label">Radius</label>
+                        <input type="number" class="input" value="${b.borderRadius||0}" oninput="updateProp('${b.id}', 'borderRadius', this.value)">
+                    </div>
+                    <div class="input-group">
+                        <label class="label">Width</label>
+                        <input type="number" class="input" value="${b.borderWidth||0}" oninput="updateProp('${b.id}', 'borderWidth', this.value)">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="label">Border Color</label>
+                    <input type="color" class="color-input" value="${b.borderColor||'#e2e8f0'}" oninput="updateProp('${b.id}', 'borderColor', this.value)">
+                </div>
+
+                <div class="sidebar-category">Effects</div>
+                <div class="input-group">
+                    <label class="label">Drop Shadow</label>
+                    <select class="select" onchange="updateProp('${b.id}', 'shadow', this.value)">
+                        <option value="none" ${b.shadow==='none'||b.shadow===false?'selected':''}>None</option>
+                        <option value="0 4px 6px -1px rgb(0 0 0 / 0.1)" ${(typeof b.shadow==='string'&&b.shadow.includes('4px'))||b.shadow===true?'selected':''}>Soft</option>
+                        <option value="0 20px 25px -5px rgb(0 0 0 / 0.1)" ${typeof b.shadow==='string'&&b.shadow.includes('20px')?'selected':''}>Deep</option>
+                        <option value="0 0 20px var(--primary)" ${typeof b.shadow==='string'&&b.shadow.includes('primary')?'selected':''}>Primary Glow</option>
+                    </select>
+                </div>
+                ${['image', 'gallery'].includes(b.type) ? `
+                <div class="input-group">
+                    <label class="label">Duotone Filter</label>
+                    <select class="select" onchange="updateProp('${b.id}', 'duotone', this.value)">
+                        <option value="none" ${b.duotone==='none'?'selected':''}>Original</option>
+                        <option value="grayscale(100%)" ${b.duotone?.includes('grayscale')?'selected':''}>Grayscale</option>
+                        <option value="sepia(60%)" ${b.duotone?.includes('sepia')?'selected':''}>Sepia Retro</option>
+                        <option value="hue-rotate(180deg)" ${b.duotone?.includes('hue-rotate')?'selected':''}>Abstract</option>
+                    </select>
+                </div>` : ''}
+            `;
+        }
+
+        let saveT;
+        function scheduleSave() {
+            const stat = document.getElementById('save-status');
+            stat.innerText = 'Saving...';
+            stat.style.display = 'block';
+            clearTimeout(saveT);
+            saveT = setTimeout(save, 1500);
+        }
+
+        async function save() {
+            try {
+                await fetch(SAVE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                    body: JSON.stringify({ content: blocks, seo: pageSeo })
+                });
+                document.getElementById('save-status').innerText = 'Saved';
+                setTimeout(()=>document.getElementById('save-status').style.display='none', 2000);
+            } catch(e) { console.error("Save failed", e); }
+        }
+
+        async function togglePublish() {
+            try {
+                const res = await fetch(PUBLISH_URL, { method: 'POST', headers: { 'X-CSRFToken': CSRF } });
+                if (res.ok) location.reload();
+            } catch(e) { alert("Publish failed"); }
+        }
+
+        function openSeoModal() {
+            Object.keys(pageSeo).forEach(key => {
+                const el = document.getElementById(`seo-${key.replace('_','-')}-input`);
+                if (el) el.value = pageSeo[key] || '';
+            });
+            document.getElementById('seoModal').style.display = 'flex';
+        }
+        function closeSeoModal() { document.getElementById('seoModal').style.display = 'none'; }
+        function updateSeo(key, val) { pageSeo[key] = val; scheduleSave(); }
+        function switchSeoTab(e, id) {
+            document.querySelectorAll('.seo-tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`seo-${id}`).style.display = 'block';
+            e.target.classList.add('active');
+        }
+
+        try {
+            if (typeof Sortable !== 'undefined') {
+                new Sortable(document.getElementById('canvas'), {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: () => {
+                        const newB = [];
+                        document.querySelectorAll('#canvas .live-block').forEach(el => {
+                            newB.push(blocks.find(b => b.id === el.dataset.id));
+                        });
+                        const footerIdx = newB.findIndex(b => b.type === 'footer');
+                        if (footerIdx !== -1 && footerIdx !== newB.length - 1) {
+                            const [footer] = newB.splice(footerIdx, 1);
+                            newB.push(footer);
+                            renderCanvas();
+                        }
+                        blocks = newB;
+                        scheduleSave();
+                    }
+                });
+            }
+        } catch(e) { console.warn("Sortable initialization skipped", e); }
+
+        function loadSampleSite() {
+            if (!confirm("This will replace your current design and SEO settings. Continue?")) return;
+            
+            blocks = [
+                { 
+                    id: 'b1', type: 'navbar', brand: 'FUTURA', layout: 'classic', design: 'glass', 
+                    bg: '#ffffff', color: '#000000', showButton: true, btnLabel: 'Get Started',
+                    links: ['Home', 'Features', 'Pricing', 'Contact']
+                },
+                { 
+                    id: 'b2', type: 'hero', title: 'Create Without Limits', 
+                    subtitle: 'The professional site builder that turns your vision into a stunning digital reality in record time.',
+                    bg: '#0f172a', color: '#ffffff', layout: 'split', primaryBtn: 'Start Free Trial', 
+                    sideImage: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop'
+                },
+                { 
+                    id: 'b3', type: 'features', title: 'Why Choose Futura',
+                    subtitle: 'Engineered for speed, designed for aesthetics, and built for your success.',
+                    columns: 3, itemBg: '#f8fafc', bg: '#ffffff'
+                },
+                { 
+                    id: 'b4', type: 'pricing', title: 'Simple, Scalable Plans',
+                    bg: '#f1f5f9', accent: '#6366f1'
+                },
+                { 
+                    id: 'b5', type: 'footer', brand: 'FUTURA', bg: '#0f172a', textColor: '#ffffff',
+                    description: 'Empowering the next generation of web creators with beautiful, performant tools.'
+                }
+            ];
+
+            pageSeo = { 
+                title: 'Futura — Modern Site Builder', 
+                slug: 'home', 
+                description: 'Build stunning websites with the Futura engine.' 
+            };
+
+            render();
+            scheduleSave();
+            alert("Premium 'Futura' Template Loaded! Review your new design on the canvas.");
+        }
+
+        function switchSidebarTab(e, id) {
+            document.querySelectorAll('.sidebar-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            const content = document.getElementById(`sidebar-${id}`);
+            if (content) content.classList.add('active');
+            e.currentTarget.classList.add('active');
+            
+            // Ensure icons are rendered if needed (Lucide)
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function togglePlugin(pluginId, checkbox) {
+            try {
+                const res = await fetch("{% url 'toggle_plugin_builder' site.id %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                    body: JSON.stringify({ plugin_id: pluginId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (installedPlugins[pluginId]) {
+                        installedPlugins[pluginId].active = data.is_active;
+                    } else {
+                        installedPlugins[pluginId] = { active: data.is_active, settings: {} };
+                    }
+                    const s = document.getElementById('save-status');
+                    s.innerText = `Plugin ${data.is_active ? 'Activated' : 'Deactivated'}`;
+                    s.style.display = 'block';
+                    setTimeout(() => s.style.display = 'none', 2000);
+                    
+                    // If auth-manager was activated, we might have new pages. 
+                    // Refresh the pages list or reload to show them.
+                    if (data.is_active && (pluginId == 'auth-manager' || allPlugins.find(p => p.id == pluginId)?.slug == 'auth-manager')) {
+                        location.reload(); 
+                    }
+                } else {
+                    checkbox.checked = !checkbox.checked;
+                    alert(data.error || "Toggle failed");
+                }
+            } catch(e) {
+                checkbox.checked = !checkbox.checked;
+                alert("Plugin toggle failed");
+            }
+        }
+
+        let currentEditingPlugin = null;
+        function openPluginSettings(pluginId, slug) {
+            currentEditingPlugin = allPlugins.find(p => p.id == pluginId);
+            const inst = installedPlugins[pluginId];
+            if (!inst || !inst.active) {
+                alert("Please activate the plugin first.");
+                return;
+            }
+            
+            const modal = document.getElementById('pluginSettingsModal');
+            document.getElementById('plugin-settings-title').innerText = currentEditingPlugin.name + " Settings";
+            const body = document.getElementById('plugin-settings-body');
+            
+            let html = '';
+            const settings = inst.settings || {};
+            
+            if (slug === 'auth-plugin' || slug === 'authentication' || slug === 'auth-manager') {
+                html = `
+                    <div class="input-group">
+                        <label class="label">Google Client ID</label>
+                        <input type="text" class="input" id="ps-google_client_id" value="${settings.google_client_id || ''}" placeholder="xxxxx.apps.googleusercontent.com">
+                    </div>
+                    <div class="input-group">
+                        <label class="label">Google Client Secret</label>
+                        <input type="password" class="input" id="ps-google_client_secret" value="${settings.google_client_secret || ''}" placeholder="••••••••••••">
+                    </div>
+                    <div class="input-group-row">
+                        <label class="label">Enable User Registration</label>
+                        <input type="checkbox" id="ps-registration_enabled" ${settings.registration_enabled ? 'checked' : ''}>
+                    </div>
+                `;
+            } else if (slug === 'seo-optimizer') {
+                html = `
+                    <div class="input-group">
+                        <label class="label">Google Analytics ID</label>
+                        <input type="text" class="input" id="ps-ga_id" value="${settings.ga_id || ''}" placeholder="G-XXXXXXXXXX">
+                    </div>
+                    <div class="input-group-row">
+                        <label class="label">Auto-generate Meta Tags</label>
+                        <input type="checkbox" id="ps-auto_meta" ${settings.auto_meta ? 'checked' : ''}>
+                    </div>
+                `;
+            } else {
+                html = `<p style="font-size:12px; color:var(--text-lo); text-align:center; padding:20px;">This plugin has no configurable settings at this time.</p>`;
+            }
+            
+            body.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+
+        async function savePluginSettings() {
+            if (!currentEditingPlugin) return;
+            const slug = currentEditingPlugin.slug;
+            const pluginId = currentEditingPlugin.id;
+            let settings = {};
+            
+            if (slug === 'auth-plugin' || slug === 'authentication' || slug === 'auth-manager') {
+                settings = {
+                    google_client_id: document.getElementById('ps-google_client_id').value,
+                    google_client_secret: document.getElementById('ps-google_client_secret').value,
+                    registration_enabled: document.getElementById('ps-registration_enabled').checked
+                };
+            } else if (slug === 'seo-optimizer') {
+                settings = {
+                    ga_id: document.getElementById('ps-ga_id').value,
+                    auto_meta: document.getElementById('ps-auto_meta').checked
+                };
+            }
+            
+            try {
+                const res = await fetch("{% url 'save_plugin_settings' site.id %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                    body: JSON.stringify({ slug, settings })
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    installedPlugins[pluginId].settings = settings;
+                    document.getElementById('pluginSettingsModal').style.display = 'none';
+                    const s = document.getElementById('save-status');
+                    s.innerText = "Plugin settings saved";
+                    s.style.display = 'block';
+                    setTimeout(() => s.style.display = 'none', 2000);
+                } else {
+                    alert("Failed to save settings: " + (data.message || 'Unknown error'));
+                }
+            } catch(e) {
+                alert("Error saving settings");
+            }
+        }
+
+        function render() {
+            renderCanvas();
+            renderProps();
+        }
+
+        render();
+
+        function switchSettingsTab(e, tab) {
+            document.querySelectorAll('.settings-tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('#settingsModal .tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('settings-' + tab).style.display = 'block';
+            e.currentTarget.classList.add('active');
+        }
+
+        function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
+        function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+        function loadPattern(id) {
+            if (id === 'hero-features') { addBlock('hero'); addBlock('features'); addBlock('ctabanner'); }
+            else if (id === 'social-proof') { addBlock('gallery'); addBlock('testimonials'); }
+        }
+
+        function renderImageUploader(propName, currentValue, label) {
+            const isGallery = propName.startsWith('gallery_item_');
+            const onInputStr = isGallery ? `updateGalleryItem(${propName.split('_')[2]}, this.value)` : `updateProp('${propName}', this.value)`;
+
+            return `
+                <div class="input-group">
+                    <label class="label">${label || 'Image Upload'}</label>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <input type="file" id="file-${propName}" style="display:none;" accept="image/*" onchange="uploadImageFile('${propName}', this.files[0])">
+                        <button class="btn-primary" onclick="document.getElementById('file-${propName}').click()" style="width:100%; padding:10px; font-size:12px; border:1px dashed rgba(0,0,0,0.2); justify-content:center; display:flex; align-items:center;" title="Upload Local File">
+                           ↑ Select Local Image
+                        </button>
+                        ${currentValue ? '<div style="font-size:10px; color:#10b981; text-align:right;">✓ Image Active</div>' : '<div style="font-size:10px; color:#ef4444; text-align:right;">No image set</div>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function uploadImageFile(propName, file) {
+            if(!file) return;
+            const btn = document.getElementById('file-'+propName).nextElementSibling;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '...';
+            try {
+                const fd = new FormData();
+                fd.append('image', file);
+                const res = await fetch("{% url 'upload_image' %}", { method: 'POST', body: fd, headers: { 'X-CSRFToken': CSRF } });
+                const data = await res.json();
+                if(data.status === 'ok') {
+                    if (propName.startsWith('gallery_item_')) {
+                        updateGalleryItem(parseInt(propName.split('_')[2]), data.url);
+                    } else {
+                        updateProp(propName, data.url);
+                        renderProps();
+                    }
+                } else alert("Upload failed");
+            } catch(e) { alert("Error uploading " + e); }
+            if (document.body.contains(btn)) {
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Sidebar Media Library logic
+        async function uploadSidebarMedia(file) {
+            if(!file) return;
+            const btn = document.querySelector('#sidebar-media button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px; height:14px;"></i> Uploading...';
+            if(window.lucide) lucide.createIcons();
+            
+            try {
+                const fd = new FormData();
+                fd.append('image', file);
+                const res = await fetch("{% url 'upload_image' %}", { method: 'POST', body: fd, headers: { 'X-CSRFToken': CSRF } });
+                const data = await res.json();
+                if(data.status === 'ok') {
+                    addMediaToGrid(data.url);
+                } else alert("Upload failed");
+            } catch(e) { alert("Error uploading " + e); }
+            
+            btn.innerHTML = originalText;
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function addMediaToGrid(url) {
+            const grid = document.getElementById('media-grid');
+            const hint = document.getElementById('no-media-hint');
+            if (hint) hint.style.display = 'none';
+            
+            const div = document.createElement('div');
+            div.style.cssText = 'aspect-ratio:1; border-radius:8px; overflow:hidden; border:1px solid var(--border); cursor:pointer; position:relative; group;';
+            div.innerHTML = `
+                <img src="${url}" style="width:100%; height:100%; object-fit:cover;">
+                <div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:700;">Click to Copy</div>
+            `;
+            div.onclick = () => {
+                navigator.clipboard.writeText(url);
+                const stat = document.getElementById('save-status');
+                stat.innerText = 'Copied URL to Clipboard';
+                stat.style.display = 'block';
+                setTimeout(() => stat.style.display = 'none', 2000);
+            };
+            div.onmouseover = () => div.querySelector('div').style.display = 'flex';
+            div.onmouseout = () => div.querySelector('div').style.display = 'none';
+            
+            grid.prepend(div);
+        }
+
+        // Sync plugin checkboxes on load
+        function initPlugins() {
+            const installedMap = {{ installed_plugins_json|safe }};
+            for (const pluginId in installedMap) {
+                const checkbox = document.getElementById('toggle-' + pluginId);
+                if (checkbox) {
+                    checkbox.checked = installedMap[pluginId].active;
+                }
+            }
+        }
+        initPlugins();
+
+        // End of Google Drive remove
+        function filterBlocks(q) {
+            const query = q.toLowerCase();
+            document.querySelectorAll('.block-item').forEach(item => {
+                const label = item.querySelector('.block-label').innerText.toLowerCase();
+                if (label.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Hide categories with no visible blocks
+            document.querySelectorAll('.sidebar-category').forEach(cat => {
+                let next = cat.nextElementSibling;
+                let hasVisible = false;
+                if (next && next.classList.contains('block-grid')) {
+                    next.querySelectorAll('.block-item').forEach(bi => {
+                        if (bi.style.display !== 'none') hasVisible = true;
+                    });
+                    cat.style.display = hasVisible ? 'block' : 'none';
+                    next.style.display = hasVisible ? 'grid' : 'none';
+                }
+            });
+        }
+    </script>
+    <script>
+        // Initialize all Lucide icons after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

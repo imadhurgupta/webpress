@@ -1,0 +1,61 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block nav_admin_users %}text-white bg-slate-800/50{% endblock %}
+{% block icon_admin_users %}text-indigo-400{% endblock %}
+{% block page_title %}User Administration{% endblock %}
+{% block page_subtitle %}Review and manage all registered accounts on the platform.{% endblock %}
+
+{% block content %}
+<div class="bg-slate-800/40 border border-slate-700/50 rounded-3xl overflow-hidden mt-6 shadow-2xl">
+    <div class="px-6 py-4 bg-slate-900/50 border-b border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h3 class="font-bold text-white flex items-center gap-2">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" class="text-indigo-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+            Registered Users
+        </h3>
+        <div class="relative">
+            <input type="text" placeholder="Search users..." class="w-full md:w-64 px-4 py-2 bg-slate-950/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+                <tr class="bg-slate-900/50 border-b border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    <th class="p-4">User</th>
+                    <th class="p-4">Email</th>
+                    <th class="p-4">Projects</th>
+                    <th class="p-4">Joined</th>
+                    <th class="p-4 text-right">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/50 text-sm">
+                {% for u in users %}
+                <tr class="hover:bg-slate-800/60 transition-colors">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white shadow-sm shrink-0">
+                                {% if hasattr and u.profile and u.profile.avatar %}<img src="{{ u.profile.avatar.url }}" class="w-full h-full rounded-full object-cover">
+                                {% else %}{{ u.username|first|upper }}{% endif %}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-white">{{ u.username }} {% if u.is_staff %}<span class="ml-2 px-2 py-0.5 bg-indigo-500/20 text-indigo-400 text-[10px] uppercase rounded">Staff</span>{% endif %}</div>
+                                <div class="text-[11px] text-slate-500">{{ u.first_name }} {{ u.last_name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-slate-400">{{ u.email }}</td>
+                    <td class="p-4 text-slate-400 font-medium">{{ u.websites.count }}</td>
+                    <td class="p-4 text-slate-400">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td class="p-4 text-right">
+                        {% if u.is_active %}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-bold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-500/10 text-slate-400 border border-slate-500/20 rounded-full text-xs font-bold"><span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

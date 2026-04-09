@@ -1,0 +1,58 @@
+/* Code Block */
+function renderCode(b, isMobile) {
+    const lang    = b.lang    || 'javascript';
+    const code    = (b.code   || 'console.log("Hello, WebPress!");').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const style   = b.codeStyle || 'dark'; // dark | light | terminal | ocean
+    const showLine = b.showLineNumbers !== false;
+
+    const themes = {
+        dark:     { bg:'#1e1e2e', text:'#cdd6f4', border:'rgba(255,255,255,0.06)', header:'#181825', badge:'#313244' },
+        light:    { bg:'#f8f8f8', text:'#24292e', border:'rgba(0,0,0,0.1)', header:'#ebebeb', badge:'#d1d5db' },
+        terminal: { bg:'#0d1117', text:'#39ff14', border:'rgba(57,255,20,0.15)', header:'#161b22', badge:'#30363d' },
+        ocean:    { bg:'#1b2b34', text:'#c0c5ce', border:'rgba(255,255,255,0.05)', header:'#1b2b34', badge:'#343d46' },
+    };
+    const t = themes[style] || themes.dark;
+
+    const lines = code.split('\n');
+    const lineNums = showLine
+        ? `<div style="padding:20px 12px;text-align:right;border-right:1px solid ${t.border};user-select:none;opacity:0.3;font-size:0.8rem;line-height:1.6;color:${t.text};">${lines.map((_,i)=>i+1).join('<br>')}</div>`
+        : '';
+
+    const langDots = `<div style="display:flex;gap:6px;"><div style="width:12px;height:12px;border-radius:50%;background:#ff5f57;"></div><div style="width:12px;height:12px;border-radius:50%;background:#febc2e;"></div><div style="width:12px;height:12px;border-radius:50%;background:#28c840;"></div></div>`;
+    const langBadge = `<span style="background:${t.badge};color:${t.text};padding:2px 10px;border-radius:4px;font-size:0.72rem;font-weight:600;opacity:0.7;">${lang}</span>`;
+
+    return `<div style="padding:${b.blockPadding||'40px 24px'};">
+        ${b.title ? `<h4 style="font-size:1rem;font-weight:700;color:${t.text};margin:0 0 12px;">${b.title}</h4>` : ''}
+        <div style="border-radius:12px;overflow:hidden;border:1px solid ${t.border};font-family:'JetBrains Mono','Fira Code',monospace;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:${t.header};border-bottom:1px solid ${t.border};">
+                ${langDots}
+                ${langBadge}
+            </div>
+            <div style="display:flex;background:${t.bg};overflow-x:auto;">
+                ${lineNums}
+                <pre style="margin:0;padding:20px 20px;font-size:${isMobile?'0.78rem':'0.88rem'};line-height:1.6;color:${t.text};flex:1;overflow:visible;white-space:pre;">${code}</pre>
+            </div>
+        </div>
+    </div>`;
+}
+
+function renderCodeProps(b) {
+    const style = b.codeStyle || 'dark';
+    return `
+        <div class="section-title" style="margin-top:0;">Theme</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px;">
+            ${['dark','light','terminal','ocean'].map(s=>`
+                <button onclick="updateProp('codeStyle','${s}')" style="padding:7px;border-radius:7px;border:2px solid ${style===s?'var(--violet)':'var(--border)'};background:${style===s?'var(--violet-dim)':'var(--bg-surface)'};color:${style===s?'var(--violet)':'var(--text-mid)'};font-size:10px;font-weight:700;cursor:pointer;">${s}</button>
+            `).join('')}
+        </div>
+
+        <div class="input-group"><label class="label">Language</label>
+            <select class="select" onchange="updateProp('lang',this.value)">
+                ${['javascript','python','html','css','bash','sql','json','typescript','php','rust','go'].map(l=>`<option value="${l}" ${b.lang===l?'selected':''}>${l}</option>`).join('')}
+            </select>
+        </div>
+        <div class="input-group"><label class="label">Title (Optional)</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title',this.value)"></div>
+        <div class="input-group"><label class="label">Code</label><textarea class="textarea" style="height:160px;font-family:monospace;font-size:11px;" oninput="updateProp('code',this.value)">${b.code||''}</textarea></div>
+        <div class="input-group-row"><label class="label">Show Line Numbers</label><input type="checkbox" ${b.showLineNumbers!==false?'checked':''} onchange="updateProp('showLineNumbers',this.checked)"></div>
+    `;
+}

@@ -1,0 +1,212 @@
+/* Features Block: Grid of services / features */
+function renderFeatures(b, isMobile, isTablet) {
+    const isStack = isMobile || isTablet;
+    const cols = isMobile ? 1 : (isTablet ? 2 : (b.columns || 3));
+    const items = b.items || [
+        {title: 'Fast Performance', desc: 'Lightning quick loading speeds out of the box with our optimized engine.', icon: '⚡', badge: 'Fast', url: '#'},
+        {title: 'Secure by Design', desc: 'Enterprise grade security for every site, keeping your data safe.', icon: '🔒', badge: 'Secure', url: '#'},
+        {title: 'Mobile Ready', desc: 'Fully responsive designs ensure your site looks great on every device.', icon: '📱', badge: '', url: '#'}
+    ];
+    
+    let bgStyle = `background:${b.bg||'#fdfdfd'};`;
+    if (b.useGradient && b.bg2) bgStyle = `background: linear-gradient(135deg, ${b.bg}, ${b.bg2});`;
+
+    const cardDesign = b.cardDesign || 'solid';
+    const cardBg = cardDesign === 'glass' ? 'rgba(255,255,255,0.05)' : (cardDesign === 'clear' ? 'transparent' : (b.itemBg||'#ffffff'));
+    const cardBorder = cardDesign === 'glass' ? '1px solid rgba(255,255,255,0.1)' : (cardDesign === 'clear' ? 'none' : `1px solid ${b.itemBorder||'rgba(0,0,0,0.04)'}`);
+    const cardShadow = cardDesign === 'clear' ? 'none' : (b.layout === 'list' ? '0 10px 30px -10px rgba(0,0,0,0.05)' : '0 25px 60px -15px rgba(0,0,0,0.04)');
+    
+    const blockId = b.id || 'feat-' + Math.random().toString(36).substr(2, 5);
+    
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, Array.isArray(sitePages) ? sitePages : []) : url;
+
+    const itemsHtml = items.map((item, idx) => {
+        const iconShapes = { circle: '100px', square: '20px', soft: '23px' };
+        const iconRad = iconShapes[b.iconStyle || 'soft'];
+        
+        const isListLayout = b.layout === 'list';
+        
+        const contentDirection = isListLayout ? 'row' : 'column';
+        const contentAlign = isListLayout ? 'flex-start' : (b.align==='center'?'center':'flex-start');
+        const textAlign = isListLayout ? 'left' : (b.align==='center'?'center':'left');
+        const iconMargin = isListLayout ? '0 30px 0 0' : '0 0 35px 0';
+        
+        return `
+            <div class="feat-card-${blockId}" style="background:${cardBg}; padding:${isListLayout?'40px 30px':'60px 45px'}; border-radius:${b.itemRadius||'40px'}; border:${cardBorder}; box-shadow:${cardShadow}; display:flex; flex-direction:${contentDirection}; align-items:${contentAlign}; text-align:${textAlign}; transition:all 0.3s ease; backdrop-filter:${cardDesign==='glass'?'blur(20px)':'none'}; position:relative;">
+                ${item.badge ? `<div style="position:absolute; top:25px; right:25px; background:${b.iconColor||'#6366f1'}15; color:${b.iconColor||'#6366f1'}; padding:6px 14px; border-radius:100px; font-size:0.7rem; font-weight:800; letter-spacing:0.02em; text-transform:uppercase;">${item.badge}</div>` : ''}
+                <div style="flex-shrink:0; width:75px; height:75px; border-radius:${iconRad}; background:${b.iconBg||'rgba(99,102,241,0.06)'}; color:${b.iconColor||'#6366f1'}; display:flex; align-items:center; justify-content:center; font-size:2rem; margin:${iconMargin};">${item.icon}</div>
+                <div style="flex:1;">
+                    <h3 style="font-size:${b.fontSizeTitle||'1.5rem'}; font-weight:900; margin-bottom:${isListLayout?'10px':'20px'}; color:${cardDesign==='glass'?'white':'var(--text-main)'}; letter-spacing:-0.03em; margin-top:${isListLayout?'5px':'0'};">${item.title}</h3>
+                    <p style="font-size:${b.fontSizeDesc||'1rem'}; line-height:1.7; opacity:0.6; color:${cardDesign==='glass'?'rgba(255,255,255,0.7)':'var(--text-muted)'}; margin-bottom:0;">${item.desc}</p>
+                    ${b.showLinks ? `<a href="${item.url||'#'}" onclick="return false;" style="margin-top:20px; font-weight:800; color:${b.iconColor||'#6366f1'}; text-decoration:none; display:flex; align-items:center; gap:8px; justify-content:${textAlign==='center'?'center':'flex-start'}; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em;">Details <span>→</span></a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <section style="${bgStyle} padding:${b.pTop||'140px'} 24px ${b.pBottom||'140px'}; transition:all 0.4s;">
+            <div style="text-align:${b.align||'center'}; margin-bottom:90px; max-width:850px; margin-left:auto; margin-right:auto;">
+                <div style="display:inline-block; padding:10px 22px; background:${b.iconColor||'#6366f1'}10; border-radius:100px; color:${b.iconColor||'#6366f1'}; font-size:0.8rem; font-weight:900; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:25px;">${b.tagline||'Capabilities'}</div>
+                <h2 style="font-size:3.5rem; font-weight:900; margin-bottom:25px; color:${b.useGradient?'white':'var(--text-main)'}; letter-spacing:-0.05em; line-height:1.1;">${b.title||'Engineered for Scale'}</h2>
+                <p style="font-size:1.25rem; line-height:1.8; opacity:0.6; color:${b.useGradient?'rgba(255,255,255,0.7)':'var(--text-muted)'};">${b.subtitle||'Launch faster and grow stronger with tools built for high-performance digital experiences.'}</p>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(${b.layout==='list'?(isStack?1:2):cols}, 1fr); gap:${b.gap || '40px'}; max-width:1240px; margin:0 auto; padding:0 20px;">${itemsHtml}</div>
+            
+            <style>
+                ${b.hoverEffect === 'lift' ? `.feat-card-${blockId}:hover { transform: translateY(-10px); box-shadow: 0 35px 80px -20px rgba(0,0,0,0.1) !important; }` : ''}
+                ${b.hoverEffect === 'glow' ? `.feat-card-${blockId}:hover { box-shadow: 0 0 40px ${b.iconColor||'#6366f1'}40 !important; border-color: ${b.iconColor||'#6366f1'}80 !important; }` : ''}
+            </style>
+        </section>
+    `;
+}
+
+function updateFeatureItem(idx, key, val) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    if (!b.items) b.items = [
+        {title: 'Fast Performance', desc: 'Lightning quick loading speeds out of the box with our optimized engine.', icon: '⚡', badge: 'Fast', url: '#'},
+        {title: 'Secure by Design', desc: 'Enterprise grade security for every site, keeping your data safe.', icon: '🔒', badge: 'Secure', url: '#'},
+        {title: 'Mobile Ready', desc: 'Fully responsive designs ensure your site looks great on every device.', icon: '📱', badge: '', url: '#'}
+    ];
+    b.items[idx][key] = val;
+    renderCanvas(); renderProps();
+}
+
+function addFeatureItem() {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    if (!b.items) b.items = [];
+    b.items.push({title: 'New Feature', desc: 'Describe the benefit here.', icon: '✨', badge: '', url: '#'});
+    renderCanvas(); renderProps();
+}
+
+function removeFeatureItem(idx) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    b.items.splice(idx, 1);
+    renderCanvas(); renderProps();
+}
+
+function renderFeaturesProps(b) {
+    const items = b.items || [
+        {title: 'Fast Performance', desc: 'Lightning quick loading speeds out of the box with our optimized engine.', icon: '⚡', badge: 'Fast'},
+        {title: 'Secure by Design', desc: 'Enterprise grade security for every site, keeping your data safe.', icon: '🔒', badge: 'Secure'},
+        {title: 'Mobile Ready', desc: 'Fully responsive designs ensure your site looks great on every device.', icon: '📱', badge: ''}
+    ];
+
+    let itemsHtml = items.map((item, i) => `
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:12px; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h4 style="margin:0; font-size:0.9rem;">Item ${i+1}</h4>
+                <button onclick="removeFeatureItem(${i})" style="background:transparent; border:none; color:#ef4444; cursor:pointer;">Remove</button>
+            </div>
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Icon</label><input type="text" class="input" value="${item.icon||''}" oninput="updateFeatureItem(${i}, 'icon', this.value)"></div>
+                <div class="input-group"><label class="label">Badge</label><input type="text" class="input" value="${item.badge||''}" oninput="updateFeatureItem(${i}, 'badge', this.value)"></div>
+            </div>
+            <div class="input-group"><label class="label">Title</label><input type="text" class="input" value="${item.title||''}" oninput="updateFeatureItem(${i}, 'title', this.value)"></div>
+            <div class="input-group"><label class="label">Description</label><textarea class="textarea" oninput="updateFeatureItem(${i}, 'desc', this.value)">${item.desc||''}</textarea></div>
+            <div class="input-group"><label class="label">URL</label><input type="text" class="input" value="${item.url||'#'}" oninput="updateFeatureItem(${i}, 'url', this.value)"></div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="section-title" style="margin-top:0;">Hero Content</div>
+        <div class="input-group"><label class="label">Tagline / Eyebrow</label><input type="text" class="input" value="${b.tagline||'Capabilities'}" oninput="updateProp('${b.id}', 'tagline', this.value)"></div>
+        <div class="input-group"><label class="label">Section Heading</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('${b.id}', 'title', this.value)"></div>
+        <div class="input-group"><label class="label">Hero Subtitle</label><textarea class="textarea" oninput="updateProp('${b.id}', 'subtitle', this.value)">${b.subtitle||''}</textarea></div>
+ drum
+        
+        <div class="section-title">Features List</div>
+        <div id="features-items-container">
+            ${itemsHtml}
+        </div>
+        <button onclick="addFeatureItem()" style="width:100%; padding:12px; background:#f1f5f9; border:1px dashed #cbd5e1; border-radius:12px; font-weight:600; cursor:pointer; color:#475569; margin-bottom:20px;">+ Add Feature</button>
+
+        <div class="section-title">Layout & Composition</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Card Layout</label>
+                <select class="select" onchange="updateProp('layout', this.value)">
+                    <option value="grid" ${b.layout==='grid'?'selected':''}>Tall Grid</option>
+                    <option value="list" ${b.layout==='list'?'selected':''}>Wide List</option>
+                </select>
+            </div>
+            <div class="input-group"><label class="label">Desktop Cols</label><input type="number" class="input" value="${b.columns||3}" oninput="updateProp('columns', parseInt(this.value))"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Grid Offset (Gap)</label><input type="text" class="input" value="${b.gap||'40px'}" oninput="updateProp('${b.id}', 'gap', this.value)"></div>
+            <div class="input-group">
+                <label class="label">Content Align</label>
+                <select class="select" onchange="updateProp('${b.id}', 'align', this.value)">
+                    <option value="left" ${b.align==='left'?'selected':''}>Align Left</option>
+                    <option value="center" ${b.align==='center'?'selected':''}>Align Center</option>
+                </select>
+            </div>
+        </div>
+ drum
+ drum
+
+        <div class="section-title">Card Architectural Style</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Design Type</label>
+                <select class="select" onchange="updateProp('${b.id}', 'cardDesign', this.value)">
+                    <option value="solid" ${b.cardDesign==='solid'?'selected':''}>Solid Minimal</option>
+                    <option value="glass" ${b.cardDesign==='glass'?'selected':''}>Modern Glass</option>
+                    <option value="clear" ${b.cardDesign==='clear'?'selected':''}>Ghost Clear</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="label">Icon Geometry</label>
+                <select class="select" onchange="updateProp('${b.id}', 'iconStyle', this.value)">
+                    <option value="soft" ${b.iconStyle==='soft'?'selected':''}>Soft Rounded</option>
+                    <option value="circle" ${b.iconStyle==='circle'?'selected':''}>Perfect Circle</option>
+                    <option value="square" ${b.iconStyle==='square'?'selected':''}>Tight Square</option>
+                </select>
+            </div>
+        </div>
+ drum
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Action Links</label><input type="checkbox" ${b.showLinks?'checked':''} onchange="updateProp('${b.id}', 'showLinks', this.checked)"></div>
+            <div class="input-group"><label class="label">Card Color</label><input type="color" class="color-input" value="${b.itemBg||'#ffffff'}" oninput="updateProp('${b.id}', 'itemBg', this.value)"></div>
+        </div>
+ drum
+        <div class="input-group">
+            <label class="label">Hover Interactive Effect</label>
+            <select class="select" onchange="updateProp('hoverEffect', this.value)">
+                <option value="none" ${b.hoverEffect==='none'?'selected':''}>None</option>
+                <option value="lift" ${b.hoverEffect==='lift'?'selected':''}>Lift & Shadow</option>
+                <option value="glow" ${b.hoverEffect==='glow'?'selected':''}>Neon Glow</option>
+            </select>
+        </div>
+
+        <div class="section-title">Visual Accents</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Accent Theme</label><input type="color" class="color-input" value="${b.iconColor||'#6366f1'}" oninput="updateProp('${b.id}', 'iconColor', this.value)"></div>
+            <div class="input-group"><label class="label">BG Primary</label><input type="color" class="color-input" value="${b.bg||'#fdfdfd'}" oninput="updateProp('${b.id}', 'bg', this.value)"></div>
+        </div>
+ drum
+        <div class="grid-2">
+            <div class="input-group"><label class="label">BG Secondary</label><input type="color" class="color-input" value="${b.bg2||'#f3f4f6'}" oninput="updateProp('${b.id}', 'bg2', this.value)"></div>
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Use Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('${b.id}', 'useGradient', this.checked)"></div>
+        </div>
+ drum
+        
+        <div class="section-title">Margins & Padding</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Margin</label><input type="text" class="input" value="${b.pTop||'140px'}" oninput="updateProp('${b.id}', 'pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Margin</label><input type="text" class="input" value="${b.pBottom||'140px'}" oninput="updateProp('${b.id}', 'pBottom', this.value)"></div>
+        </div>
+ drum
+
+        <div class="section-title">Typography Scaling</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Title Size</label><input type="text" class="input" value="${b.fontSizeTitle||'1.5rem'}" oninput="updateProp('${b.id}', 'fontSizeTitle', this.value)"></div>
+            <div class="input-group"><label class="label">Desc Size</label><input type="text" class="input" value="${b.fontSizeDesc||'1rem'}" oninput="updateProp('${b.id}', 'fontSizeDesc', this.value)"></div>
+        </div>
+ drum
+    `;
+}

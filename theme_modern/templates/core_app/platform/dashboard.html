@@ -1,0 +1,78 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back, {{ user.username|title }}! Here's your overview.{% endblock %}
+{% block page_actions %}
+<button onclick="window.location.href='{% url 'my_websites' %}?action=new'" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:shadow-[0_0_25px_rgba(99,102,241,0.4)]">
+    🚀 Create Website
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:bg-slate-800 hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 group-hover:scale-110 transition-all duration-300 border border-indigo-500/10">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        </div>
+        <div class="text-3xl font-sans font-bold text-white tracking-tight">{{ websites.count }}</div>
+        <div class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Websites</div>
+    </div>
+</div>
+
+<!-- Quick Navigation -->
+<p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Quick Access</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
+    <a href="{% url 'my_websites' %}" class="flex items-center gap-4 p-4 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl hover:bg-slate-800 hover:border-indigo-500/50 transition-all duration-300 shadow-sm hover:shadow-lg group hover:-translate-y-1">
+        <div class="w-10 h-10 rounded-lg bg-slate-900/80 text-slate-300 flex items-center justify-center group-hover:text-indigo-400 group-hover:bg-indigo-500/10 border border-slate-700/50 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div>
+            <div class="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">My Websites</div>
+            <div class="text-xs text-slate-400 mt-0.5">Manage your sites</div>
+        </div>
+    </a>
+</div>
+
+<!-- Recent Websites -->
+<div class="flex items-center justify-between mb-4">
+    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Recent Websites</p>
+    <a href="{% url 'my_websites' %}" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">View All</a>
+</div>
+
+{% if websites %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+    {% for site in websites|slice:":6" %}
+    <a href="{% url 'builder' site.id site.pages.first.id %}" class="flex flex-col bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden hover:bg-slate-800 hover:border-indigo-500/50 transition-all duration-300 group hover:-translate-y-1.5 shadow-sm hover:shadow-[0_10px_30px_-10px_rgba(99,102,241,0.2)]">
+        <div class="h-36 bg-gradient-to-b from-slate-900/50 to-slate-900/80 flex items-center justify-center border-b border-slate-700/50 relative overflow-hidden group-hover:from-slate-900/80 group-hover:to-indigo-900/20 transition-colors">
+            <div class="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity blur-2xl rounded-full scale-150"></div>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-slate-600 group-hover:text-indigo-400 transition-all duration-300 relative z-10 group-hover:scale-110" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+        </div>
+        <div class="p-5">
+            <div class="font-sans font-bold text-white text-lg truncate mb-1 group-hover:text-indigo-300 transition-colors">{{ site.name }}</div>
+            <div class="text-xs text-slate-400 font-medium tracking-wide">Created {{ site.created_at|date:"M d, Y" }}</div>
+        </div>
+        <div class="px-5 py-3.5 bg-slate-900/50 border-t border-slate-700/50 flex items-center justify-between mt-auto group-hover:bg-indigo-500/10 transition-colors relative">
+            <span class="text-xs font-bold tracking-wider uppercase text-indigo-400 group-hover:text-indigo-300">Open Builder</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-indigo-400 group-hover:text-indigo-300 group-hover:translate-x-1 transition-transform" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="p-12 text-center bg-slate-800/20 backdrop-blur-sm border-2 border-slate-700/50 border-dashed rounded-2xl flex flex-col items-center justify-center">
+    <div class="text-5xl mb-6 bg-slate-800/50 w-20 h-20 rounded-full flex items-center justify-center shadow-inner border border-slate-700">🚀</div>
+    <h4 class="text-xl font-sans font-bold text-white mb-2">No Websites Yet</h4>
+    <p class="text-sm text-slate-400 mb-8 max-w-sm">Create your first website to unlock the full potential of WebPress and start building.</p>
+    <button onclick="window.location.href='{% url 'my_websites' %}?action=new'" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:-translate-y-0.5">
+        Create Your First Website
+    </button>
+</div>
+{% endif %}
+
+{% endblock %}

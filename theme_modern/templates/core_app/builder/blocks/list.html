@@ -1,0 +1,83 @@
+/* List Block */
+function renderList(b, isMobile) {
+    const items  = b.items || ['First item — edit me', 'Second item — add your content', 'Third item — remove or expand'];
+    const style  = b.listStyle || 'bullet'; // bullet | numbered | check | icon | none
+    const color  = b.color   || '#0a0a0a';
+    const size   = b.fontSize || '1rem';
+    const weight = b.fontWeight || '400';
+    const iconColor = b.iconColor || '#7c3aed';
+
+    const markers = { bullet: '•', check: '✓', star: '★', arrow: '→', dash: '—' };
+    const marker  = markers[style] || markers.bullet;
+
+    const listItems = items.map((item, i) => {
+        let markerHtml = '';
+        if (style === 'numbered') {
+            markerHtml = `<span style="min-width:28px;height:28px;background:${iconColor};color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;">${i+1}</span>`;
+        } else if (style !== 'none') {
+            markerHtml = `<span style="color:${iconColor};font-size:1.1rem;flex-shrink:0;min-width:24px;text-align:center;">${marker}</span>`;
+        }
+        return `<li style="display:flex;align-items:flex-start;gap:12px;padding:${b.itemPadding||'8px 0'};${i < items.length-1 && b.dividers ? `border-bottom:1px solid rgba(0,0,0,0.07);` : ''}">
+            ${markerHtml}
+            <span style="font-size:${size};font-weight:${weight};color:${color};line-height:1.6;">${item}</span>
+        </li>`;
+    }).join('');
+
+    return `<div style="padding:${b.blockPadding||'32px 0'};">
+        ${b.title ? `<h3 style="font-size:1.5rem;font-weight:700;color:${color};margin:0 0 20px;">${b.title}</h3>` : ''}
+        <ul style="list-style:none;margin:0;padding:0;max-width:${b.maxWidth||'680px'};${b.align==='center'?'margin-left:auto;margin-right:auto;':b.align==='right'?'margin-left:auto;':''}">
+            ${listItems}
+        </ul>
+    </div>`;
+}
+
+function renderListProps(b) {
+    const items = b.items || ['First item', 'Second item', 'Third item'];
+    return `
+        <div class="section-title" style="margin-top:0;">List Style</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px;">
+            ${['bullet','numbered','check','arrow','star','none'].map(s=>`
+                <button onclick="updateProp('listStyle','${s}')" style="padding:6px 4px;border-radius:7px;border:2px solid ${(b.listStyle||'bullet')===s?'var(--violet)':'var(--border)'};background:${(b.listStyle||'bullet')===s?'var(--violet-dim)':'var(--bg-surface)'};color:${(b.listStyle||'bullet')===s?'var(--violet)':'var(--text-mid)'};font-size:10px;font-weight:700;cursor:pointer;text-transform:capitalize;">${s}</button>
+            `).join('')}
+        </div>
+
+        <div class="section-title">Items</div>
+        <div id="list-items-editor" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+            ${items.map((item, idx) => `
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <input type="text" class="input" value="${item}" oninput="updateListItem(${idx},this.value)" style="flex:1;">
+                    <button onclick="removeListItem(${idx})" style="background:#ef4444;border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-weight:700;flex-shrink:0;">×</button>
+                </div>
+            `).join('')}
+        </div>
+        <button class="btn-primary" style="width:100%;padding:8px;" onclick="addListItem()">+ Add Item</button>
+
+        <div class="section-title">Options</div>
+        <div class="input-group"><label class="label">Title (optional)</label><input type="text" class="input" value="${b.title||''}" oninput="updateProp('title',this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Icon Color</label><input type="color" class="color-input" value="${b.iconColor||'#7c3aed'}" oninput="updateProp('iconColor',this.value)"></div>
+            <div class="input-group"><label class="label">Text Color</label><input type="color" class="color-input" value="${b.color||'#0a0a0a'}" oninput="updateProp('color',this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Font Size</label><input type="text" class="input" value="${b.fontSize||'1rem'}" oninput="updateProp('fontSize',this.value)"></div>
+            <div class="input-group"><label class="label">Align</label><select class="select" onchange="updateProp('align',this.value)">
+                ${['left','center','right'].map(a=>`<option value="${a}" ${b.align===a?'selected':''}>${a}</option>`).join('')}
+            </select></div>
+        </div>
+        <div class="input-group-row"><label class="label">Show Dividers</label><input type="checkbox" ${b.dividers?'checked':''} onchange="updateProp('dividers',this.checked)"></div>
+    `;
+}
+
+function addListItem() {
+    const b = blocks.find(x => x.id === selectedId); if(!b) return;
+    if (!b.items) b.items = [];
+    b.items.push('New item'); render(); scheduleSave();
+}
+function removeListItem(idx) {
+    const b = blocks.find(x => x.id === selectedId); if(!b || !b.items) return;
+    b.items.splice(idx, 1); render(); scheduleSave();
+}
+function updateListItem(idx, val) {
+    const b = blocks.find(x => x.id === selectedId); if(!b || !b.items) return;
+    b.items[idx] = val; renderCanvas(); scheduleSave();
+}

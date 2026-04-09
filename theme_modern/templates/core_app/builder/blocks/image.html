@@ -1,0 +1,120 @@
+/* Image Block: Single responsive image */
+function renderImage(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const align = b.align || 'center';
+    const width = b.width || '100%';
+    const src = b.src || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2672&auto=format&fit=crop';
+    
+    const filterMap = {
+        none: 'none',
+        grayscale: 'grayscale(100%)',
+        blur: 'blur(5px)',
+        sepia: 'sepia(50%)',
+        vivid: 'saturate(150%)'
+    };
+    
+    const shadowMap = {
+        none: 'none',
+        soft: '0 20px 40px rgba(0,0,0,0.05)',
+        deep: '0 40px 100px -20px rgba(0,0,0,0.2)',
+        glow: `0 0 40px ${b.glowColor||'rgba(99,102,241,0.2)'}`
+    };
+
+    const containerStyle = `padding:${b.pTop||'60px'} 20px ${b.pBottom||'60px'}; text-align:${align}; background:${b.bg||'transparent'}; position:relative;`;
+    
+    const imgStyle = `
+        max-width:${width}; width:100%; 
+        border-radius:${b.borderRadius||'32px'}; 
+        box-shadow:${shadowMap[b.shadowStyle||'soft']}; 
+        aspect-ratio:${b.aspectRatio||'auto'};
+        object-fit:${b.objectFit||'cover'};
+        filter:${filterMap[b.filter||'none']};
+        transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display:inline-block;
+    `;
+
+    const captionHtml = b.caption ? `
+        <div style="margin-top:20px; font-size:0.9rem; opacity:0.5; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+            ${b.caption}
+        </div>
+    ` : '';
+
+    const isLink = b.link && b.link.trim() !== '';
+    const linkStart = isLink ? `<a href="${b.link}" target="${b.linkTarget||'_blank'}" style="display:block; text-decoration:none; color:inherit;">` : '';
+    const linkEnd = isLink ? `</a>` : '';
+
+    return `
+        <div style="${containerStyle}">
+            <div style="display:inline-block; max-width:${width}; width:100%; position:relative; overflow:hidden; border-radius:${b.borderRadius||'32px'}; transition:transform 0.3s;" onmouseover="${isLink ? "this.style.transform='scale(1.02)'" : ""}" onmouseout="${isLink ? "this.style.transform='scale(1)'" : ""}">
+                ${linkStart}
+                    <img src="${src}" style="${imgStyle}" alt="image">
+                    ${b.showOverlay ? `<div style="position:absolute; inset:0; background:linear-gradient(transparent, rgba(0,0,0,0.4)); pointer-events:none;"></div>` : ''}
+                ${linkEnd}
+            </div>
+            ${captionHtml}
+        </div>
+    `;
+}
+
+function renderImageProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Source & Frame</div>
+        ${renderImageUploader('src', b.src, 'Source File')}
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Max Width</label><input type="text" class="input" value="${b.width||'100%'}" oninput="updateProp('width', this.value)"></div>
+            <div class="input-group">
+                <label class="label">Aspect Ratio</label>
+                <select class="select" onchange="updateProp('aspectRatio', this.value)">
+                    <option value="auto" ${b.aspectRatio==='auto'?'selected':''}>Original</option>
+                    <option value="1/1" ${b.aspectRatio==='1/1'?'selected':''}>1:1 Square</option>
+                    <option value="4/3" ${b.aspectRatio==='4/3'?'selected':''}>4:3 Classic</option>
+                    <option value="16/9" ${b.aspectRatio==='16/9'?'selected':''}>16:9 Cinema</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section-title">Geometry & Alignment</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Alignment</label>
+                <select class="select" onchange="updateProp('align', this.value)">
+                    <option value="left" ${b.align==='left'?'selected':''}>Align Left</option>
+                    <option value="center" ${b.align==='center'?'selected':''}>Align Center</option>
+                    <option value="right" ${b.align==='right'?'selected':''}>Align Right</option>
+                </select>
+            </div>
+            <div class="input-group"><label class="label">Corner Radius</label><input type="text" class="input" value="${b.borderRadius||'32px'}" oninput="updateProp('borderRadius', this.value)"></div>
+        </div>
+
+        <div class="section-title">Visual Filters</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Filter Effect</label>
+                <select class="select" onchange="updateProp('filter', this.value)">
+                    <option value="none" ${b.filter==='none'?'selected':''}>Dynamic None</option>
+                    <option value="grayscale" ${b.filter==='grayscale'?'selected':''}>Monochrome</option>
+                    <option value="blur" ${b.filter==='blur'?'selected':''}>Soft Focus</option>
+                    <option value="sepia" ${b.filter==='sepia'?'selected':''}>Vintage Sepia</option>
+                    <option value="vivid" ${b.filter==='vivid'?'selected':''}>Ultra Vivid</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="label">Shadow Deep</label>
+                <select class="select" onchange="updateProp('shadowStyle', this.value)">
+                    <option value="soft" ${b.shadowStyle==='soft'?'selected':''}>Subtle Soft</option>
+                    <option value="deep" ${b.shadowStyle==='deep'?'selected':''}>Deep Float</option>
+                    <option value="glow" ${b.shadowStyle==='glow'?'selected':''}>Neon Glow</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section-title">Content & Links</div>
+        <div class="input-group"><label class="label">Click Hyperlink</label><input type="text" class="input" value="${b.link||''}" placeholder="https://..." oninput="updateProp('link', this.value)"></div>
+        <div class="input-group-row" style="margin-bottom:1rem; margin-top:-5px;"><label class="label">Open in New Tab</label><input type="checkbox" ${b.linkTarget==='_self'?'':'checked'} onchange="updateProp('linkTarget', this.checked ? '_blank' : '_self')"></div>
+        <div class="input-group"><label class="label">Caption Text</label><input type="text" class="input" value="${b.caption||''}" oninput="updateProp('caption', this.value)"></div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Pad</label><input type="text" class="input" value="${b.pTop||'60px'}" oninput="updateProp('pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Pad</label><input type="text" class="input" value="${b.pBottom||'60px'}" oninput="updateProp('pBottom', this.value)"></div>
+        </div>
+    `;
+}

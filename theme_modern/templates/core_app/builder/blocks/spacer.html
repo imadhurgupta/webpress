@@ -1,0 +1,49 @@
+/* Spacer Block: Vertical spacing and separators */
+function renderSpacer(b, isMobile, isTablet) {
+    const height = isSmaller(isMobile, isTablet) ? (b.heightMobile || '40px') : (b.height || '80px');
+    
+    let innerContent = '';
+    if (b.showLine) {
+        const lStyle = b.lineStyle || 'solid';
+        const lThickness = b.lineThickness || '1px';
+        const lWidth = b.lineWidth || '100%';
+        const lColor = b.lineColor || 'rgba(0,0,0,0.1)';
+        
+        let subStyle = `width:${lWidth}; height:${lThickness}; border-bottom:${lThickness} ${lStyle} ${lColor}; transition:all 0.3s;`;
+        if (b.design === 'glow') subStyle += `box-shadow: 0 0 15px ${lColor};`;
+        
+        innerContent = `<div style="height:100%; display:flex; align-items:center; justify-content:center;"><div style="${subStyle}"></div></div>`;
+    }
+
+    return `<div style="height:${height}; background:${b.bg || 'transparent'}; position:relative;">${innerContent}</div>`;
+}
+
+function isSmaller(m, t) { return m || t; }
+
+function renderSpacerProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Vertical Height</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Desktop</label><input type="text" class="input" value="${b.height||'80px'}" oninput="updateProp('height', this.value)"></div>
+            <div class="input-group"><label class="label">Mobile</label><input type="text" class="input" value="${b.heightMobile||'40px'}" oninput="updateProp('heightMobile', this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Background</label><input type="color" class="color-input" value="${b.bg||'#ffffff'}" oninput="updateProp('bg', this.value)"></div>
+
+        <div class="section-title">Visual Separator</div>
+        <div class="input-group-row">
+            <label class="label">Show Divider</label>
+            <input type="checkbox" ${b.showLine?'checked':''} onchange="updateProp('showLine', this.checked)">
+        </div>
+        ${b.showLine ? `
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Style</label><select class="select" onchange="updateProp('lineStyle', this.value)"><option value="solid" ${b.lineStyle==='solid'?'selected':''}>Solid</option><option value="dashed" ${b.lineStyle==='dashed'?'selected':''}>Dashed</option><option value="dotted" ${b.lineStyle==='dotted'?'selected':''}>Dotted</option></select></div>
+                <div class="input-group"><label class="label">Design</label><select class="select" onchange="updateProp('design', this.value)"><option value="none" ${b.design==='none'?'selected':''}>Neutral</option><option value="glow" ${b.design==='glow'?'selected':''}>Glow</option></select></div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Thickness</label><input type="text" class="input" value="${b.lineThickness||'1px'}" oninput="updateProp('lineThickness', this.value)"></div>
+                <div class="input-group"><label class="label">Width %</label><input type="text" class="input" value="${b.lineWidth||'100%'}" oninput="updateProp('lineWidth', this.value)"></div>
+            </div>
+            <div class="input-group"><label class="label">Line Color</label><input type="color" class="color-input" value="${b.lineColor||'rgba(0,0,0,0.1)'}" oninput="updateProp('lineColor', this.value)"></div>
+        ` : ''}
+    `;
+}

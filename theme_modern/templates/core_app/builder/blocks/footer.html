@@ -1,0 +1,380 @@
+function renderFooter(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const columns = b.columns || [
+        {title: 'Solutions', items: [{label: 'AI Analytics', url: '#'}, {label: 'Blockchain SDK', url: '#'}, {label: 'Edge Compute', url: '#'}, {label: 'IoT Core', url: '#'}]},
+        {title: 'Developer', items: [{label: 'API Docs', url: '#'}, {label: 'Status', url: '#'}, {label: 'Open Source', url: '#'}, {label: 'Changelog', url: '#'}]},
+        {title: 'Resources', items: [{label: 'Whitepapers', url: '#'}, {label: 'Webinars', url: '#'}, {label: 'Case Studies', url: '#'}, {label: 'Brand Assets', url: '#'}]}
+    ];
+
+    let bgStyle = `background:${b.bg||'#09090b'};`;
+    if (b.useGradient && b.bg2) bgStyle = `background: linear-gradient(180deg, ${b.bg}, ${b.bg2});`;
+
+    const accent = b.accent || '#6366f1';
+    
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, Array.isArray(sitePages) ? sitePages : []) : url;
+
+    // Auto-detect if background is light or dark to prevent invisible text
+    const getLuminance = (hex) => {
+        hex = (hex || '#09090b').replace('#', '');
+        if(hex.length === 3) hex = hex.split('').map(x=>x+x).join('');
+        const r = parseInt(hex.substring(0,2), 16) || 0;
+        const g = parseInt(hex.substring(2,4), 16) || 0;
+        const b_val = parseInt(hex.substring(4,6), 16) || 0;
+        return (0.299*r + 0.587*g + 0.114*b_val);
+    };
+    const isLightBg = getLuminance(b.bg) > 150;
+    const defaultTextColor = isLightBg ? '#0f172a' : '#ffffff';
+    // If the user hasn't explicitly set a custom text color, use the smart default
+    const textColor = b.textColor || defaultTextColor;
+
+    const fade = (hex, alpha) => {
+        hex = hex.replace('#', '');
+        if(hex.length === 3) hex = hex.split('').map(x=>x+x).join('');
+        const r = parseInt(hex.substring(0,2), 16) || 0;
+        const g = parseInt(hex.substring(2,4), 16) || 0;
+        const b_val = parseInt(hex.substring(4,6), 16) || 0;
+        return `rgba(${r},${g},${b_val},${alpha})`;
+    };
+
+    const renderSocials = () => {
+        const socials = b.socials || [
+            {icon: '𝕏', url: '#'}, {icon: 'in', url: '#'}, {icon: 'GH', url: '#'}, {icon: 'YT', url: '#'}
+        ];
+        const shape = b.socialShape || 'square';
+        const radius = shape === 'circle' ? '50%' : (shape === 'square' ? '12px' : '0');
+        const bg = shape === 'ghost' ? 'transparent' : fade(textColor, 0.04);
+        const border = shape === 'ghost' ? 'none' : `1px solid ${fade(textColor, 0.1)}`;
+
+        return socials.map(s => `
+            <a href="${resolve(s.url)}" style="width:40px; height:40px; border-radius:${radius}; background:${bg}; border:${border}; display:flex; align-items:center; justify-content:center; color:${textColor}; font-size:1rem; cursor:pointer; transition:all 0.3s; text-decoration:none; font-weight:800;">
+                ${s.icon}
+            </a>
+        `).join('');
+    };
+
+    const logoHtml = b.logoUrl 
+        ? `<img src="${b.logoUrl}" style="height:${b.logoHeight||'44px'}; cursor:pointer;" alt="Logo">`
+        : `<div style="font-size:1.8rem; font-weight:900; color:${textColor}; letter-spacing:-0.05em; display:flex; align-items:center; gap:10px;">
+            <div style="width:32px; height:32px; background:${accent}; border-radius:8px;"></div>
+            ${b.brand||'WEBPRESS'}
+          </div>`;
+
+    // Render Newsletter
+    const newsletterHtml = b.showNewsletter ? `
+        <div style="max-width:1280px; margin:0 auto 100px; padding:60px; background:${b.newsletterStyle==='card'? fade(textColor, 0.03):'transparent'}; border:${b.newsletterStyle==='card'?`1px solid ${fade(textColor, 0.08)}`:'none'}; border-radius:40px; display:flex; justify-content:space-between; align-items:center; flex-direction:${isSmall?'column':'row'}; gap:40px;">
+            <div style="max-width:500px; text-align:${isSmall?'center':'left'};">
+                <h4 style="font-size:1.8rem; font-weight:900; margin-bottom:12px; letter-spacing:-0.03em;">Inner Circle Alpha</h4>
+                <p style="opacity:0.6; font-size:1rem; font-weight:500;">Get weekly deep-dives into edge computing & UX strategy.</p>
+            </div>
+            <div style="display:flex; gap:15px; width:${isSmall?'100%':'450px'};">
+                <form action="${resolve(b.newsletterAction||'#')}" method="POST" style="display:flex; flex-direction:${isMobile?'column':'row'}; gap:15px; width:100%;" onsubmit="${b.newsletterAction?'':'event.preventDefault();'}">
+                    <input type="email" placeholder="${b.newsletterPlaceholder||'Your elite email'}" style="background:${fade(textColor, 0.05)}; border:1px solid ${fade(textColor, 0.1)}; padding:20px 25px; border-radius:18px; color:${textColor}; font-size:1rem; flex:1; font-weight:500;">
+                    <button type="submit" style="background:${accent}; border:none; padding:${isMobile?'20px':'0 35px'}; border-radius:18px; font-weight:800; color:#ffffff; cursor:pointer; font-size:1rem; white-space:nowrap;">Join Alpha</button>
+                </form>
+            </div>
+        </div>` : '';
+
+    const colsHtml = columns.map(c => `
+        <div style="flex:1;">
+            <h4 style="font-size:0.8rem; font-weight:900; text-transform:uppercase; letter-spacing:0.2em; color:${accent}; margin-bottom:35px;">${c.title}</h4>
+            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:18px;">
+                ${c.items.map(i => `<li style="font-size:0.95rem; opacity:0.6; font-weight:500; transition:0.3s; width:fit-content;"><a href="${resolve(i.url)}" style="color:inherit; text-decoration:none;">${i.label}</a></li>`).join('')}
+            </ul>
+        </div>
+    `).join('');
+
+    const legalHtml = `
+        <div style="max-width:1280px; margin:0 auto; padding-top:60px; border-top:1px solid ${fade(textColor, 0.1)}; display:flex; justify-content:space-between; align-items:center; flex-direction:${isMobile ? 'column' : 'row'}; gap:40px;">
+            <div style="display:flex; align-items:center; flex-wrap:wrap; justify-content:${isMobile?'center':'flex-start'}; gap:25px; font-size:0.85rem; opacity:0.5; font-weight:600;">
+                <span>© ${new Date().getFullYear()} ${b.brand||'WebPress'} Global</span>
+                <span style="width:4px; height:4px; border-radius:50%; background:currentColor;"></span>
+                <span>System Status</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; justify-content:${isMobile?'center':'flex-end'}; gap:35px; font-size:0.85rem; opacity:0.5; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;">
+                <a href="${resolve(b.privacyUrl||'#')}" style="color:inherit; text-decoration:none;">Privacy</a>
+                <a href="${resolve(b.securityUrl||'#')}" style="color:inherit; text-decoration:none;">Security</a>
+                <a href="${resolve(b.termsUrl||'#')}" style="color:inherit; text-decoration:none;">Terms</a>
+            </div>
+        </div>
+    `;
+
+    if (b.footerLayout === 'centered') {
+        const centeredLinksHtml = columns.map(c => c.items.map(i => `<a href="${i.url}" style="color:inherit; text-decoration:none;">${i.label}</a>`).join('')).join('');
+        return `
+            <footer style="${bgStyle} color:${textColor}; padding:${b.pTop||'120px'} 24px ${b.pBottom||'60px'}; text-align:center;">
+                <div style="max-width:800px; margin:0 auto;">
+                     ${newsletterHtml}
+                    <div style="display:flex; justify-content:center; margin-bottom:40px;">${logoHtml}</div>
+                    <p style="font-size:1.1rem; opacity:0.6; line-height:1.8; margin-bottom:50px;">${b.description||'Empowering creators with high-performance digital infrastructure.'}</p>
+                    <div style="display:flex; justify-content:center; gap:30px; font-weight:700; opacity:0.8; font-size:0.95rem; margin-bottom:60px; flex-wrap:wrap;">
+                        ${centeredLinksHtml}
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:15px; margin-bottom:80px;">${renderSocials()}</div>
+                    ${legalHtml}
+                </div>
+            </footer>
+        `;
+    }
+
+    if (b.footerLayout === 'minimal') {
+        const minimalLinksHtml = columns.map(c => c.items.map(i => `<a href="${i.url}" style="color:inherit; text-decoration:none; opacity:0.6; font-size:0.95rem; font-weight:500;">${i.label}</a>`).join('')).join('');
+        return `
+            <footer style="${bgStyle} color:${textColor}; padding:${b.pTop||'60px'} 24px ${b.pBottom||'60px'};">
+                <div style="max-width:1280px; margin:0 auto;">
+                    ${newsletterHtml}
+                    <div style="display:flex; flex-direction:${isSmall ? 'column' : 'row'}; justify-content:space-between; align-items:${isSmall?'flex-start':'center'}; gap:40px; margin-bottom:40px;">
+                        <div>
+                            ${logoHtml}
+                        </div>
+                        <div style="display:flex; gap:25px; flex-wrap:wrap;">
+                            ${minimalLinksHtml}
+                        </div>
+                        <div style="display:flex; gap:12px;">${renderSocials()}</div>
+                    </div>
+                    ${legalHtml}
+                </div>
+            </footer>
+        `;
+    }
+
+    if (b.footerLayout === 'grid-right') {
+        return `
+            <footer style="${bgStyle} color:${textColor}; padding:${b.pTop||'140px'} 24px ${b.pBottom||'60px'}; border-top:1px solid ${fade(textColor, 0.05)}; transition:all 0.4s;">
+                <div style="max-width:1280px; margin:0 auto;">
+                    ${newsletterHtml}
+                    <div style="display:grid; grid-template-columns:${isSmall ? '1fr' : '3fr 1.5fr'}; gap:${isSmall ? '60px' : '120px'}; margin-bottom:120px;">
+                        <div style="display:grid; grid-template-columns:repeat(${isMobile ? 1 : Math.max(1, columns.length)}, 1fr); gap:60px; order:${isSmall?'2':'1'};">
+                            ${colsHtml}
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:40px; order:${isSmall?'1':'2'}; text-align:${isSmall?'left':'right'}; align-items:${isSmall?'flex-start':'flex-end'};">
+                            <div>${logoHtml}</div>
+                            <p style="font-size:1.05rem; opacity:0.6; line-height:1.8; max-width:350px; font-weight:500;">${b.description||'The world\'s most advanced visual engine for high-performance marketing teams.'}</p>
+                            <div style="display:flex; gap:12px; justify-content:${isSmall?'flex-start':'flex-end'};">${renderSocials()}</div>
+                        </div>
+                    </div>
+                    ${legalHtml}
+                </div>
+            </footer>
+        `;
+    }
+
+    if (b.footerLayout === 'mega-brand') {
+        return `
+            <footer style="${bgStyle} color:${textColor}; padding:${b.pTop||'120px'} 0 0; overflow:hidden; display:flex; flex-direction:column;">
+                <div style="max-width:1280px; margin:0 auto; padding:0 24px; width:100%;">
+                    ${newsletterHtml}
+                    <div style="display:flex; flex-direction:${isSmall ? 'column' : 'row'}; justify-content:space-between; gap:60px; margin-bottom:80px;">
+                        <div style="display:grid; grid-template-columns:repeat(${isMobile ? 1 : Math.max(1, columns.length)}, 1fr); gap:60px; flex:1;">
+                            ${colsHtml}
+                        </div>
+                        <div style="width:${isSmall ? '100%':'320px'}; display:flex; flex-direction:column; gap:30px; align-items:${isSmall?'flex-start':'flex-end'}; text-align:${isSmall?'left':'right'};">
+                            <div>${logoHtml}</div>
+                            <p style="font-size:1.05rem; opacity:0.6; line-height:1.8; font-weight:500;">${b.description||'Future-proof your web presence today.'}</p>
+                            <div style="display:flex; gap:12px;">${renderSocials()}</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="width:100%; text-align:center; position:relative; margin-top:auto;">
+                    <div style="position:absolute; bottom:30px; left:24px; right:24px; z-index:10;">
+                        ${legalHtml.replace('max-width:1280px; margin:0 auto; padding-top:60px;', 'max-width:1280px; margin:0 auto; padding-top:20px;')}
+                    </div>
+                    <div style="font-size:16vw; font-weight:900; line-height:0.75; letter-spacing:-0.03em; color:${fade(textColor, 0.04)}; white-space:nowrap; overflow:hidden; text-align:center; padding-bottom:100px;">
+                        ${b.brand ? b.brand.toUpperCase() : 'WEBPRESS'}
+                    </div>
+                </div>
+            </footer>
+        `;
+    }
+
+    if (b.footerLayout === 'framed-card') {
+        return `
+            <div style="padding:0 24px ${b.pBottom||'40px'}; background:transparent;">
+                <footer style="${bgStyle} color:${textColor}; padding:${b.pTop||'80px'} 5vw 60px; border-radius:40px; max-width:1400px; margin:0 auto; box-shadow:0 30px 60px rgba(0,0,0,0.08); border:1px solid ${fade(textColor, 0.05)};">
+                    ${newsletterHtml}
+                    <div style="display:grid; grid-template-columns:${isSmall ? '1fr' : '2.5fr 1fr'}; gap:${isSmall ? '60px' : '100px'}; margin-bottom:80px;">
+                        <div style="display:grid; grid-template-columns:repeat(${isMobile ? 1 : Math.max(1, columns.length)}, 1fr); gap:40px;">
+                            ${colsHtml}
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:30px; border-left:${isSmall?'none':`1px solid ${fade(textColor,0.1)}`}; padding-left:${isSmall?'0':'60px'};">
+                            <div>${logoHtml}</div>
+                            <p style="font-size:0.95rem; opacity:0.6; line-height:1.6;">${b.description||'Creating modern digital experiences with cutting-edge tools.'}</p>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">${renderSocials()}</div>
+                        </div>
+                    </div>
+                    ${legalHtml}
+                </footer>
+            </div>
+        `;
+    }
+
+    // Default 'grid' Layout
+    return `
+        <footer style="${bgStyle} color:${textColor}; padding:${b.pTop||'140px'} 24px ${b.pBottom||'60px'}; border-top:1px solid ${fade(textColor, 0.05)}; transition:all 0.4s;">
+            <div style="max-width:1280px; margin:0 auto;">
+                ${newsletterHtml}
+                <div style="display:grid; grid-template-columns:${isSmall ? '1fr' : '1.5fr 3fr'}; gap:${isSmall ? '60px' : '120px'}; margin-bottom:120px;">
+                    <div style="display:flex; flex-direction:column; gap:40px;">
+                        <div>${logoHtml}</div>
+                        <p style="font-size:1.05rem; opacity:0.6; line-height:1.8; max-width:350px; font-weight:500;">${b.description||'The world\'s most advanced visual engine for high-performance marketing teams.'}</p>
+                        <div style="display:flex; gap:12px;">${renderSocials()}</div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(${isMobile ? 1 : Math.max(1, columns.length)}, 1fr); gap:60px;">
+                        ${colsHtml}
+                    </div>
+                </div>
+                ${legalHtml}
+            </div>
+        </footer>
+    `;
+}
+
+function updateFooterCol(idx, key, val) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    ensureFooterData(b);
+    b.columns[idx][key] = val;
+    renderCanvas(); renderProps();
+}
+
+function updateFooterLink(colIdx, linkIdx, key, val) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    ensureFooterData(b);
+    b.columns[colIdx].items[linkIdx][key] = val;
+    renderCanvas(); renderProps();
+}
+
+function addFooterCol() {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    ensureFooterData(b);
+    b.columns.push({title: 'New Column', items: []});
+    renderCanvas(); renderProps();
+}
+
+function removeFooterCol(idx) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    b.columns.splice(idx, 1);
+    renderCanvas(); renderProps();
+}
+
+function addFooterLink(colIdx) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    ensureFooterData(b);
+    b.columns[colIdx].items.push({label: 'New Link', url: '#'});
+    renderCanvas(); renderProps();
+}
+
+function removeFooterLink(colIdx, linkIdx) {
+    const b = blocks.find(x => x.id === selectedId);
+    if (!b) return;
+    b.columns[colIdx].items.splice(linkIdx, 1);
+    renderCanvas(); renderProps();
+}
+
+function ensureFooterData(b) {
+    if (!b.columns) {
+        b.columns = [
+            {title: 'Solutions', items: [{label: 'AI Analytics', url: '#'}, {label: 'Blockchain SDK', url: '#'}, {label: 'Edge Compute', url: '#'}, {label: 'IoT Core', url: '#'}]},
+            {title: 'Developer', items: [{label: 'API Docs', url: '#'}, {label: 'Status', url: '#'}, {label: 'Open Source', url: '#'}, {label: 'Changelog', url: '#'}]},
+            {title: 'Resources', items: [{label: 'Whitepapers', url: '#'}, {label: 'Webinars', url: '#'}, {label: 'Case Studies', url: '#'}, {label: 'Brand Assets', url: '#'}]}
+        ];
+    }
+}
+
+function renderFooterProps(b) {
+    ensureFooterData(b);
+
+    let colsHtml = b.columns.map((c, i) => `
+        <div style="background:#f1f5f9; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h4 style="margin:0; font-size:0.9rem;">Column ${i+1}</h4>
+                <button onclick="removeFooterCol(${i})" style="background:transparent; border:none; color:#ef4444; cursor:pointer;">Remove</button>
+            </div>
+            <div class="input-group"><label class="label">Column Title</label><input type="text" class="input" value="${c.title||''}" oninput="updateFooterCol(${i}, 'title', this.value)"></div>
+            <div style="margin-top:10px; border-top:1px solid #cbd5e1; padding-top:10px;">
+                ${c.items.map((item, j) => `
+                    <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <input type="text" class="input" value="${item.label||''}" oninput="updateFooterLink(${i}, ${j}, 'label', this.value)" style="flex:1;" placeholder="Label">
+                        <input type="text" class="input" value="${item.url||''}" oninput="updateFooterLink(${i}, ${j}, 'url', this.value)" style="flex:1;" placeholder="URL">
+                        <button onclick="removeFooterLink(${i}, ${j})" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem;">×</button>
+                    </div>
+                `).join('')}
+                <button onclick="addFooterLink(${i})" style="font-size:0.8rem; background:#e2e8f0; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">+ Add Link</button>
+            </div>
+        </div>
+    `).join('');
+
+    const layout = b.footerLayout || 'grid';
+    return `
+        <div class="section-title" style="margin-top:0;">Identity & Layout</div>
+        <div class="input-group"><label class="label">Brand Vision (Name)</label><input type="text" class="input" value="${b.brand||'WEBPRESS'}" oninput="updateProp('${b.id}', 'brand', this.value)"></div>
+        <div class="input-group"><label class="label">Custom Logo URL</label><input type="text" class="input" value="${b.logoUrl||''}" oninput="updateProp('${b.id}', 'logoUrl', this.value)"></div>
+        <div class="input-group">
+            <label class="label">Footer Architecture</label>
+            <select class="select" onchange="updateProp('${b.id}', 'footerLayout', this.value)">
+                <option value="grid" ${layout==='grid'?'selected':''}>Enterprise Grid</option>
+                <option value="grid-right" ${layout==='grid-right'?'selected':''}>Enterprise Right</option>
+                <option value="mega-brand" ${layout==='mega-brand'?'selected':''}>Mega Brand Typography</option>
+                <option value="framed-card" ${layout==='framed-card'?'selected':''}>Floating Framed Container</option>
+                <option value="centered" ${layout==='centered'?'selected':''}>Centered Layout</option>
+                <option value="minimal" ${layout==='minimal'?'selected':''}>Bottom Bar Minimal</option>
+            </select>
+        </div>
+        <div class="input-group"><label class="label">Brand Description</label><textarea class="textarea" style="height:80px;" oninput="updateProp('${b.id}', 'description', this.value)">${b.description||''}</textarea></div>
+        
+        <div class="section-title">Navigation Columns</div>
+        <div id="footer-cols">
+            ${colsHtml}
+        </div>
+        <button onclick="addFooterCol()" style="width:100%; padding:12px; background:#f1f5f9; border:1px dashed #cbd5e1; border-radius:12px; font-weight:600; cursor:pointer; color:#475569; margin-bottom:20px;">+ Add Column</button>
+
+        <div class="section-title">Visual System</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Accent Theme</label><input type="color" class="color-input" value="${b.accent||'#6366f1'}" oninput="updateProp('${b.id}', 'accent', this.value)"></div>
+            <div class="input-group"><label class="label">Text Color</label><input type="color" class="color-input" value="${b.textColor||'#ffffff'}" oninput="updateProp('${b.id}', 'textColor', this.value)"></div>
+        </div>
+        <div class="input-group">
+            <label class="label">Social Shape</label>
+            <select class="select" onchange="updateProp('${b.id}', 'socialShape', this.value)">
+                <option value="square" ${b.socialShape==='square'?'selected':''}>Soft Square</option>
+                <option value="circle" ${b.socialShape==='circle'?'selected':''}>Perfect Circle</option>
+                <option value="ghost" ${b.socialShape==='ghost'?'selected':''}>Ghost Icon</option>
+            </select>
+        </div>
+
+        <div class="section-title">Background Strategy</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">BG Primary</label><input type="color" class="color-input" value="${b.bg||'#09090b'}" oninput="updateProp('${b.id}', 'bg', this.value)"></div>
+            <div class="input-group"><label class="label">BG Secondary</label><input type="color" class="color-input" value="${b.bg2||'#000000'}" oninput="updateProp('${b.id}', 'bg2', this.value)"></div>
+        </div>
+        <div class="input-group-row"><label class="label">Use Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('${b.id}', 'useGradient', this.checked)"></div>
+
+        <div class="section-title">Marketing Elements</div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label class="label">Newsletter UI</label>
+                <select class="select" onchange="updateProp('${b.id}', 'newsletterStyle', this.value)">
+                    <option value="card" ${b.newsletterStyle==='card'?'selected':''}>Glass Card</option>
+                    <option value="flat" ${b.newsletterStyle==='flat'?'selected':''}>Flat Minimal</option>
+                </select>
+            </div>
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Show Sign-up</label><input type="checkbox" ${b.showNewsletter?'checked':''} onchange="updateProp('${b.id}', 'showNewsletter', this.checked)"></div>
+        </div>
+        <div class="input-group"><label class="label">Newsletter Form Action URL</label><input type="text" class="input" value="${b.newsletterAction||''}" oninput="updateProp('${b.id}', 'newsletterAction', this.value)"></div>
+
+        <div class="section-title">Legal Links</div>
+        <div class="input-group"><label class="label">Privacy Policy URL</label><input type="text" class="input" value="${b.privacyUrl||'#'}" oninput="updateProp('${b.id}', 'privacyUrl', this.value)"></div>
+        <div class="input-group"><label class="label">Security Info URL</label><input type="text" class="input" value="${b.securityUrl||'#'}" oninput="updateProp('${b.id}', 'securityUrl', this.value)"></div>
+        <div class="input-group"><label class="label">Terms of Service URL</label><input type="text" class="input" value="${b.termsUrl||'#'}" oninput="updateProp('${b.id}', 'termsUrl', this.value)"></div>
+
+        <div class="section-title">Geometric Spacing</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Top Pad</label><input type="text" class="input" value="${b.pTop||'140px'}" oninput="updateProp('${b.id}', 'pTop', this.value)"></div>
+            <div class="input-group"><label class="label">Bottom Pad</label><input type="text" class="input" value="${b.pBottom||'60px'}" oninput="updateProp('${b.id}', 'pBottom', this.value)"></div>
+        </div>
+    `;
+}

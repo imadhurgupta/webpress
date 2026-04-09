@@ -1,0 +1,53 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Leads & Submissions{% endblock %}
+{% block nav_leads %}active{% endblock %}
+{% block page_title %}Form Submissions{% endblock %}
+{% block page_subtitle %}Manage inquiries and leads captured from your websites.{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid" style="grid-template-columns: 1fr;">
+    <div class="stats-card">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid var(--border);">
+                        <th style="padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Source Website</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Name</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Email</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Message</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase;">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in leads %}
+                    <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 1rem; font-weight: 600;">{{ lead.website.name }}</td>
+                        <td style="padding: 1rem;">{{ lead.name }}</td>
+                        <td style="padding: 1rem;"><a href="mailto:{{ lead.email }}" style="color: var(--primary); text-decoration: none;">{{ lead.email }}</a></td>
+                        <td style="padding: 1rem; max-width: 300px;">
+                            <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">
+                                {{ lead.message|truncatewords:20 }}
+                                {% if lead.message|wordcount > 20 %}
+                                    <button onclick="alert('Full Message:\n\n' + '{{ lead.message|escapejs }}')" style="background: none; border: none; color: var(--primary); cursor: pointer; padding: 0; font-size: 0.75rem; font-weight: 700;">Read More</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td style="padding: 1rem; font-size: 0.8rem; color: var(--text-muted);">{{ lead.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 4rem; text-align: center; color: var(--text-muted);">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📥</div>
+                            <div style="font-size: 1.125rem; font-weight: 600; color: var(--text-main);">No leads yet</div>
+                            <p style="margin-top: 0.5rem;">When people submit forms on your sites, they will appear here.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

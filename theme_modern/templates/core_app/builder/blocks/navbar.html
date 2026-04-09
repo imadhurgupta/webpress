@@ -1,0 +1,531 @@
+/* Navbar Block: Full-featured navigation renderer with 6 style presets */
+function renderNavbar(b, isMobile, isTablet, isSmall, sitePages) {
+    if (!b.links && sitePages && sitePages.length > 0) {
+        // Auto-generate links if none exist
+        b.links = sitePages.slice(0, 5).map(p => ({
+            label: p.title,
+            url: p.is_home ? '/' : '/' + p.slug,
+            hasDropdown: false
+        }));
+    }
+    
+    // Helper to resolve links safely (available in preview.html, dummy in builder)
+    const resolve = (url) => typeof resolveSiteLink === 'function' ? resolveSiteLink(url, sitePages) : url;
+
+    const style   = b.navStyle || 'minimal';
+    let layout    = b.layout   || 'standard'; // standard | centered | split
+    
+    // Vertical sidebar natively works primarily on desktop in visual builder
+    if (layout === 'vertical' && isSmall) {
+        layout = 'standard';
+    }
+
+    const links   = b.links    || [
+        { label: 'Home',     url: '/',         hasDropdown: false },
+        { label: 'Features', url: '#features', hasDropdown: false },
+        { label: 'Pricing',  url: '#pricing',  hasDropdown: false },
+        { label: 'About',    url: '#about',    hasDropdown: false },
+    ];
+
+    /* ── LOGO / BRAND ──────────────────────────────────────────── */
+    const logoHtml = b.logoUrl
+        ? `<img src="${b.logoUrl}" style="height:${isMobile ? (b.logoSizeMobile||'28px') : (b.logoSize||'38px')}; object-fit:contain; display:block;" alt="logo">`
+        : `<span style="font-weight:900; font-size:${isMobile ? '1rem':'1.25rem'}; letter-spacing:-0.04em; white-space:nowrap; background:${b.logoBg||'inherit'}; -webkit-background-clip:${b.logoBg?'text':'initial'}; -webkit-text-fill-color:${b.logoBg?'transparent':'inherit'};">${b.brand||'WebPress'}</span>`;
+
+    /* ── NAV LINKS ─────────────────────────────────────────────── */
+    const linkColor   = b.linkColor   || 'inherit';
+    const linkSize    = b.linkSize    || '0.9rem';
+    const linkWeight  = b.linkWeight  || '500';
+    const activeColor = b.activeColor || (style === 'dark' || style === 'gradient' ? '#fff' : '#6d28d9');
+
+    const linksHtml = `<nav style="display:${isSmall ? 'none':'flex'}; align-items:center; gap:${b.linkGap||'28px'};">
+        ${links.map((l, i) => `
+            <div style="position:relative;">
+                <a href="${resolve(l.url)}" onclick="return false;" style="
+                    text-decoration:none;
+                    color:${i === 0 ? activeColor : linkColor};
+                    font-size:${linkSize};
+                    font-weight:${i === 0 ? '700' : linkWeight};
+                    opacity:${i === 0 ? '1' : (b.linkOpacity||'0.75')};
+                    transition:opacity 0.2s, color 0.2s;
+                    white-space:nowrap;
+                    display:flex; align-items:center; gap:4px;
+                ">${l.label}${l.hasDropdown ? `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>` : ''}</a>
+                ${i === 0 && b.showActiveBar ? `<div style="position:absolute;bottom:-${layout==='vertical'?'8':'22'}px;left:50%;transform:translateX(-50%);width:${b.activeBarW||'20px'};height:${b.activeBarH||'3px'};background:${activeColor};border-radius:99px;"></div>` : ''}
+            </div>
+        `).join('')}
+    </nav>`;
+
+    /* ── UTILITY ICONS ─────────────────────────────────────────── */
+    const iconSize   = b.iconSize   || 18;
+    const iconStroke = b.iconStroke || 2;
+    const iconColor  = b.iconColor  || linkColor;
+    const badgeBg    = b.badgeBg    || '#ef4444';
+    const badgeColor = b.badgeColor || '#ffffff';
+
+    const searchSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${iconStroke}"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+    const userSvg   = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${iconStroke}"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    const cartSvg   = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${iconStroke}"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`;
+    const burgerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
+
+    const utilsHtml = `<div style="display:flex;align-items:center;gap:14px;color:${iconColor};opacity:0.8;">
+        ${b.showSearch ? `<a href="${resolve(b.searchUrl||'#')}" onclick="${b.searchUrl && b.searchUrl !== '#' ? '' : 'return false;'}" style="text-decoration:none;color:inherit;display:flex;">${searchSvg}</a>` : ''}
+        ${b.showUser   ? `<a href="${resolve(b.userUrl||'#')}" onclick="${b.userUrl && b.userUrl !== '#' ? '' : 'return false;'}" style="text-decoration:none;color:inherit;display:flex;">${userSvg}</a>` : ''}
+        ${b.showCart   ? `<a href="${resolve(b.cartUrl||'#')}" onclick="${b.cartUrl && b.cartUrl !== '#' ? '' : 'return false;'}" style="text-decoration:none;color:inherit;display:flex;position:relative;">${cartSvg}<span style="position:absolute;top:-5px;right:-5px;min-width:14px;padding:0 3px;height:14px;background:${badgeBg};color:${badgeColor};border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;">${b.cartCount!==undefined?b.cartCount:'0'}</span></a>` : ''}
+    </div>`;
+
+    const burgerHtml = isSmall ? `<div style="cursor:pointer;display:flex;color:${iconColor};">${burgerSvg}</div>` : '';
+
+    /* ── CTA BUTTON ────────────────────────────────────────────── */
+    const btnBg     = b.btnBg     || '#7c3aed';
+    const btnColor  = b.btnColor  || '#ffffff';
+    const btnRadius = b.btnRadius || '8px';
+    const btn2Bg    = b.btn2Bg    || 'transparent';
+    const btn2Color = b.btn2Color || linkColor;
+
+    const ctaHtml = b.showButton ? `
+        ${b.showButton2 ? `<a href="${resolve(b.btn2Url||'#')}" onclick="return false;" style="text-decoration:none;color:${btn2Color};font-size:${linkSize};font-weight:600;padding:8px 16px;border:1px solid ${btn2Color === 'inherit' ? 'rgba(0,0,0,0.2)' : btn2Color};border-radius:${btnRadius};opacity:0.75;">${b.btn2Label||'Learn more'}</a>` : ''}
+        <a href="${resolve(b.btnUrl||'#')}" onclick="return false;" style="text-decoration:none;background:${btnBg};color:${btnColor};font-size:${linkSize};font-weight:700;padding:${b.btnPad||'9px 22px'};border-radius:${btnRadius};display:inline-block;box-shadow:${style==='gradient'?'none':'0 2px 12px rgba(124,58,237,0.25)'};">${b.btnLabel||'Get Started'}</a>
+    ` : '';
+
+    /* ── COMPOSE INNER HTML BY LAYOUT ──────────────────────────── */
+    let inner = '';
+
+    if (layout === 'vertical') {
+        // Vertical sidebar nav
+        inner = `<div style="display:flex;flex-direction:column;gap:32px;width:100%;height:100%;">
+            <div>${logoHtml}</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                ${links.map((l,i) => `
+                    <a href="${resolve(l.url)}" onclick="return false;" style="text-decoration:none;color:${i===0?activeColor:linkColor};font-size:${linkSize};font-weight:${i===0?'700':linkWeight};opacity:${i===0?'1':'0.7'};padding:10px 14px;border-radius:8px;background:${i===0?'rgba(124,58,237,0.08)':'transparent'};display:flex;align-items:center;gap:8px;">${l.label}</a>
+                `).join('')}
+            </div>
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:24px;border-top:1px solid rgba(128,128,128,0.12);">
+                ${utilsHtml}
+                ${b.showButton ? `<a href="${resolve(b.btnUrl||'#')}" onclick="return false;" style="text-decoration:none;text-align:center;background:${btnBg};color:${btnColor};font-size:0.85rem;font-weight:700;padding:10px 18px;border-radius:${btnRadius};display:block;">${b.btnLabel||'Get Started'}</a>` : ''}
+            </div>
+        </div>`;
+    } else if (layout === 'centered') {
+        // Logo on top, links centered below in a pill
+        inner = `<div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;">
+            ${logoHtml}
+            <div style="display:flex;align-items:center;gap:0;background:rgba(128,128,128,0.07);border:1px solid rgba(128,128,128,0.12);border-radius:99px;padding:4px 8px;gap:4px;">
+                ${links.map((l,i) => `<a href="${resolve(l.url)}" onclick="return false;" style="text-decoration:none;color:${i===0?activeColor:linkColor};font-size:${linkSize};font-weight:${i===0?'700':linkWeight};padding:7px 18px;border-radius:99px;background:${i===0?'rgba(124,58,237,0.1)':'transparent'};">${l.label}</a>`).join('')}
+                ${b.showButton ? `<a href="${resolve(b.btnUrl||'#')}" onclick="return false;" style="text-decoration:none;margin-left:8px;background:${btnBg};color:${btnColor};font-size:${linkSize};font-weight:700;padding:7px 18px;border-radius:99px;">${b.btnLabel||'Get Started'}</a>` : ''}
+            </div>
+        </div>`;
+    } else if (layout === 'split') {
+        // Logo left, links center, CTA right (3 columns)
+        const mid = Math.ceil(links.length / 2);
+        const leftLinks = links.slice(0, mid);
+        const rightLinks = links.slice(mid);
+        inner = `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:${isSmall?'none':'flex'};gap:${b.linkGap||'24px'};align-items:center;">
+                ${leftLinks.map((l,i) => `<a href="${resolve(l.url)}" onclick="return false;" style="text-decoration:none;color:${linkColor};font-size:${linkSize};font-weight:${linkWeight};opacity:0.75;">${l.label}</a>`).join('')}
+            </div>
+            <div style="position:absolute;left:50%;transform:translateX(-50%);">${logoHtml}</div>
+            <div style="display:flex;gap:${b.linkGap||'24px'};align-items:center;">
+                ${isSmall ? burgerHtml : rightLinks.map((l,i) => `<a href="${resolve(l.url)}" onclick="return false;" style="text-decoration:none;color:${linkColor};font-size:${linkSize};font-weight:${linkWeight};opacity:0.75;">${l.label}</a>`).join('')}
+                ${!isSmall ? ctaHtml : ''}
+            </div>
+        </div>`;
+    } else if (layout === 'left-links') {
+        // Logo left, links immediately next to logo, utilities and CTA right
+        inner = `<div style="display:flex;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;gap:${b.linkGap||'32px'};flex:1;">
+                ${logoHtml}
+                ${!isSmall ? linksHtml : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:${b.linkGap||'24px'};">
+                ${!isSmall ? utilsHtml : ''}
+                ${!isSmall ? ctaHtml : ''}
+                ${burgerHtml}
+            </div>
+        </div>`;
+    } else if (layout === 'search-center') {
+        // Logo left, search bar center, links and CTA right
+        const searchBox = `<div style="flex:1; max-width:400px; margin:0 20px; position:relative;">
+            <input type="text" placeholder="${(b.searchPlaceholder||'Search...').replace(/"/g, '&quot;')}" style="width:100%; padding:9px 16px 9px 36px; border-radius:99px; border:1px solid rgba(128,128,128,0.25); background:rgba(128,128,128,0.05); color:inherit; font-size:0.9rem; outline:none;">
+            <div style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:rgba(128,128,128,0.6); display:flex;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+        </div>`;
+        inner = `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;flex-shrink:0;">${logoHtml}</div>
+            ${!isSmall ? searchBox : ''}
+            <div style="display:flex;align-items:center;gap:${b.linkGap||'28px'};flex-shrink:0;">
+                ${!isSmall ? linksHtml : ''}
+                ${!isSmall ? utilsHtml : ''}
+                ${!isSmall ? ctaHtml : ''}
+                ${burgerHtml}
+            </div>
+        </div>`;
+    } else if (layout === 'two-tier') {
+        // Top tier for small links, bottom tier for main nav
+        const topLinks = b.topLinks || [
+            { label: 'Support', url: '#' },
+            { label: 'Log In', url: '#' },
+            { label: 'Language', url: '#' }
+        ];
+        inner = `<div style="width:100%;display:flex;flex-direction:column;">
+            ${!isSmall ? `<div style="display:flex; justify-content:flex-end; gap:20px; padding-bottom:12px; border-bottom:1px solid rgba(128,128,128,0.15); margin-bottom:14px; font-size:0.75rem; font-weight:600; opacity:0.75; text-transform:uppercase; letter-spacing:0.02em;">
+                ${topLinks.map(l => `<a href="${l.url}" onclick="return false;" style="text-decoration:none;color:inherit;">${l.label}</a>`).join('')}
+            </div>` : ''}
+            <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+                <div style="display:flex;align-items:center;">${logoHtml}</div>
+                <div style="display:flex;align-items:center;gap:${b.linkGap||'28px'};">
+                    ${!isSmall ? linksHtml : ''}
+                    ${!isSmall ? utilsHtml : ''}
+                    ${!isSmall ? ctaHtml : ''}
+                    ${burgerHtml}
+                </div>
+            </div>
+        </div>`;
+    } else {
+        // Standard: logo left, links + CTA right
+        inner = `<div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;">${logoHtml}</div>
+            <div style="display:flex;align-items:center;gap:${b.linkGap||'28px'};">
+                ${!isSmall ? linksHtml : ''}
+                ${!isSmall ? utilsHtml : ''}
+                ${!isSmall ? ctaHtml : ''}
+                ${burgerHtml}
+            </div>
+        </div>`;
+    }
+
+    /* ── STYLE PRESET CSS ───────────────────────────────────────── */
+    let navCss = `display:flex;align-items:center;z-index:100;font-family:${b.fontFamily||'inherit'};transition:all 0.3s;`;
+
+    if (layout === 'vertical') {
+        navCss += `flex-direction:column;align-items:flex-start;padding:36px 24px;`;
+    } else {
+        const pad = isSmall ? '14px 18px' : (b.fullWidth ? `18px 32px` : `18px calc((100% - 1200px) / 2 + 32px)`);
+        navCss += `width:100%;padding:${pad};`;
+        if (b.sticky) navCss += 'position:sticky;top:0;';
+    }
+
+    // Style presets
+    const presets = {
+        minimal:   `background:${b.bg||'#ffffff'};color:${b.color||'#0a0a0a'};border-bottom:1px solid rgba(0,0,0,0.06);`,
+        glass:     `background:rgba(255,255,255,${b.glassOpacity||0.75});backdrop-filter:blur(18px) saturate(200%);-webkit-backdrop-filter:blur(18px);color:${b.color||'#0a0a0a'};border-bottom:1px solid rgba(255,255,255,0.3);box-shadow:0 1px 24px rgba(0,0,0,0.06);`,
+        dark:      `background:${b.bg||'#0a0a0a'};color:#f1f1f1;border-bottom:1px solid rgba(255,255,255,0.06);`,
+        gradient:  `background:linear-gradient(135deg,${b.gradStart||'#7c3aed'},${b.gradEnd||'#2563eb'});color:#ffffff;box-shadow:0 8px 32px rgba(124,58,237,0.3);`,
+        bordered:  `background:${b.bg||'#ffffff'};color:${b.color||'#0a0a0a'};border:2px solid ${b.borderColor||'#0a0a0a'};border-radius:${b.outerRadius||'16px'};margin:${b.marginTop||'12px'} ${b.marginSide||'16px'};width:calc(100% - ${b.marginSide ? parseInt(b.marginSide)*2+'px' : '32px'}) !important;box-shadow:4px 4px 0 ${b.borderColor||'#0a0a0a'};`,
+        floating:  `background:${b.bg||'#ffffff'};color:${b.color||'#0a0a0a'};border-radius:${b.outerRadius||'999px'};margin:${b.marginTop||'14px'} auto;max-width:${b.floatWidth||'900px'};box-shadow:0 8px 40px rgba(0,0,0,0.1),0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.05);width:calc(100% - 48px) !important;`,
+    };
+
+    navCss += presets[style] || presets.minimal;
+
+    if (b.transparent) navCss = navCss.replace(/background:[^;]+;/, 'background:transparent;');
+
+    if (layout === 'vertical') {
+        // Strip out horizontal preset artifacts like max-width, bottom border, margins
+        navCss += `border-bottom:none !important; border-radius:0 !important; margin:0 !important; max-width:none !important; height:100%; width:100%; box-shadow:none !important;`;
+        
+        return `<style>
+            @media (min-width: 1024px) {
+                /* Push the entire canvas / page to the right to make room for the sidebar */
+                #canvas, #site-root { padding-left: 260px !important; position: relative !important; min-height: 100vh !important; }
+                /* Snap the live block wrapper to the left edge so it perfectly overlays the padding */
+                .live-block[data-id="${b.id}"], .published-block[data-id="${b.id}"] { 
+                    position: absolute !important; left: 0 !important; top: 0 !important; bottom: 0 !important; 
+                    width: 260px !important; z-index: 100 !important; outline-offset:-2px; border:none !important; margin:0 !important; padding:0 !important;
+                }
+            }
+        </style>
+        <div style="position: sticky; top: 0; width: 260px; height: 100vh; overflow-y:auto; overflow-x:hidden; background:${b.transparent ? 'transparent' : (b.bg||'#ffffff')}; border-right:1px solid rgba(128,128,128,0.12); box-shadow:${style==='bordered' ? 'none' : '1px 0 24px rgba(0,0,0,0.03)'};">
+            <nav style="${navCss}">${inner}</nav>
+        </div>`;
+    }
+
+    return `<nav style="${navCss}">${inner}</nav>`;
+}
+
+/* ── NAVBAR PROPERTIES PANEL ──────────────────────────────────────── */
+function renderNavbarProps(b, sitePages) {
+    const style  = b.navStyle || 'minimal';
+    const layout = b.layout   || 'standard';
+    
+    // Page selection helper
+    const pageOptions = (current) => {
+        return `
+            <option value="${current||'#'}">Select Page</option>
+            ${sitePages ? sitePages.map(p => {
+                const pageUrl = p.is_home ? '/' : '/' + p.slug;
+                return `<option value="${pageUrl}" ${current === pageUrl ? 'selected' : ''}>${p.title}</option>`;
+            }).join('') : ''}
+        `;
+    };
+
+    return `
+        <div class="section-title" style="margin-top:0;">Visual Architecture</div>
+        <div class="input-group">
+            <label class="label">Style Preset</label>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                ${['minimal','glass','dark','gradient','bordered','floating'].map(s => `
+                    <button onclick="updateProp('${b.id}','navStyle','${s}')" style="padding:6px 4px;border-radius:7px;border:2px solid ${style===s?'var(--violet)':'var(--border)'};background:${style===s?'var(--violet-dim)':'var(--bg-surface)'};color:${style===s?'var(--violet)':'var(--text-mid)'};font-size:10px;font-weight:700;cursor:pointer;text-transform:capitalize;">${s}</button>
+                `).join('')}
+            </div>
+        </div>
+        <div class="input-group">
+            <label class="label">Layout Pattern</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                ${['standard','centered','split','vertical','left-links','search-center','two-tier'].map(l => `
+                    <button onclick="updateProp('${b.id}','layout','${l}')" style="flex:1 1 30%;padding:6px 4px;border-radius:7px;border:2px solid ${layout===l?'var(--violet)':'var(--border)'};background:${layout===l?'var(--violet-dim)':'var(--bg-surface)'};color:${layout===l?'var(--violet)':'var(--text-mid)'};font-size:10px;font-weight:700;cursor:pointer;text-transform:capitalize;">${l.replace('-',' ')}</button>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="section-title">Brand & Logo</div>
+        <div class="input-group"><label class="label">Brand Name</label><input type="text" class="input" value="${b.brand||'WebPress'}" oninput="updateProp('${b.id}','brand',this.value)"></div>
+        ${renderImageUploader('logoUrl', b.logoUrl, 'Logo Image')}
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Logo Size (Desktop)</label><input type="text" class="input" value="${b.logoSize||'38px'}" placeholder="38px" oninput="updateProp('${b.id}','logoSize',this.value)"></div>
+            <div class="input-group"><label class="label">Logo Size (Mobile)</label><input type="text" class="input" value="${b.logoSizeMobile||'28px'}" placeholder="28px" oninput="updateProp('${b.id}','logoSizeMobile',this.value)"></div>
+        </div>
+
+        <div class="section-title">Navigation Links</div>
+        <div id="nav-links-editor" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+            ${(b.links || []).map((l, idx) => `
+                <div style="background:var(--bg-surface);padding:10px;border-radius:10px;border:1px solid var(--border); margin-bottom:4px;">
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <div style="flex:1;">
+                            <label class="label" style="font-size:8px;">Label</label>
+                            <input type="text" class="input" value="${l.label}" placeholder="Home" oninput="updateNavLink('${b.id}', ${idx},'label',this.value)">
+                        </div>
+                        <div style="flex:1;">
+                            <label class="label" style="font-size:8px;">Page</label>
+                            <select class="select" onchange="updateNavLink('${b.id}', ${idx},'url',this.value); renderProps();">
+                                ${pageOptions(l.url)}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-bottom:8px;">
+                        <label class="label" style="font-size:8px;">Manual URL</label>
+                        <input type="text" class="input" value="${l.url}" placeholder="/" oninput="updateNavLink('${b.id}', ${idx},'url',this.value)">
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <label style="font-size:10px;color:var(--text-lo);display:flex;gap:5px;align-items:center;cursor:pointer;">
+                            <input type="checkbox" ${l.hasDropdown?'checked':''} onchange="updateNavLink('${b.id}', ${idx},'hasDropdown',this.checked)"> Dropdown
+                        </label>
+                        <button onclick="removeNavLink('${b.id}', ${idx})" style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.2); color:#ef4444; font-size:10px; font-weight:700; padding:4px 10px; border-radius:6px; cursor:pointer;">Remove</button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        <button class="btn-primary" style="width:100%;padding:10px;margin-bottom:14px;background:var(--violet-dim);color:var(--violet);" onclick="addNavLink('${b.id}')">+ Add Navigation Link</button>
+
+        ${layout === 'two-tier' ? `
+        <div class="section-title">Top Tier Links</div>
+        <div id="nav-toplinks-editor" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+            ${(b.topLinks || []).map((l, idx) => `
+                <div style="background:var(--bg-surface);padding:8px;border-radius:8px;border:1px solid var(--border);">
+                    <div style="display:flex;gap:6px; margin-bottom:6px;">
+                        <input type="text" class="input" value="${l.label.replace(/"/g, '&quot;')}" placeholder="Label" oninput="updateNavTopLink('${b.id}', ${idx},'label',this.value)" style="flex:1;">
+                        <select class="select" onchange="updateNavTopLink('${b.id}', ${idx},'url',this.value); renderProps();" style="flex:1;">
+                            ${pageOptions(l.url)}
+                        </select>
+                        <button onclick="removeNavTopLink('${b.id}', ${idx})" style="background:#ef4444;border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;font-weight:700;">×</button>
+                    </div>
+                    <input type="text" class="input" value="${l.url}" placeholder="URL" oninput="updateNavTopLink('${b.id}', ${idx},'url',this.value)">
+                </div>
+            `).join('')}
+        </div>
+        <button class="btn-primary" style="width:100%;padding:10px;margin-bottom:14px;background:var(--violet-dim);color:var(--violet);" onclick="addNavTopLink('${b.id}')">+ Add Top Link</button>
+        ` : ''}
+
+        <div class="section-title">Call To Action</div>
+        <div class="input-group-row"><label class="label">Show CTA Button</label><input type="checkbox" ${b.showButton?'checked':''} onchange="updateProp('${b.id}','showButton',this.checked)"></div>
+        ${b.showButton ? `
+        <div style="background:var(--bg-surface); padding:12px; border-radius:10px; border:1px solid var(--border); margin-top:8px;">
+            <div class="input-group"><label class="label">Button Label</label><input type="text" class="input" value="${b.btnLabel||'Get Started'}" oninput="updateProp('${b.id}','btnLabel',this.value)"></div>
+            <div class="grid-2">
+                <div class="input-group">
+                    <label class="label">Link Page</label>
+                    <select class="select" onchange="updateProp('${b.id}','btnUrl',this.value); renderProps();">
+                        ${pageOptions(b.btnUrl)}
+                    </select>
+                </div>
+                <div class="input-group"><label class="label">Manual URL</label><input type="text" class="input" value="${b.btnUrl||'#'}" oninput="updateProp('${b.id}','btnUrl',this.value)"></div>
+            </div>
+            <div class="grid-2">
+                <div class="input-group"><label class="label">Background</label><input type="color" class="color-input" value="${b.btnBg||'#7c3aed'}" oninput="updateProp('${b.id}','btnBg',this.value)"></div>
+                <div class="input-group"><label class="label">Text Color</label><input type="color" class="color-input" value="${b.btnColor||'#ffffff'}" oninput="updateProp('${b.id}','btnColor',this.value)"></div>
+            </div>
+            <div class="input-group"><label class="label">Border Radius</label><input type="text" class="input" value="${b.btnRadius||'8px'}" placeholder="8px" oninput="updateProp('${b.id}','btnRadius',this.value)"></div>
+            
+            <div class="input-group-row" style="margin-top:12px;"><label class="label">Show Secondary Button</label><input type="checkbox" ${b.showButton2?'checked':''} onchange="updateProp('${b.id}','showButton2',this.checked)"></div>
+            ${b.showButton2 ? `
+            <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px;">
+                <div class="input-group"><label class="label">Ghost Btn Text</label><input type="text" class="input" value="${b.btn2Label||'Learn more'}" oninput="updateProp('${b.id}','btn2Label',this.value)"></div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="label">Link Page</label>
+                        <select class="select" onchange="updateProp('${b.id}','btn2Url',this.value); renderProps();">
+                            ${pageOptions(b.btn2Url)}
+                        </select>
+                    </div>
+                    <div class="input-group"><label class="label">Manual URL</label><input type="text" class="input" value="${b.btn2Url||'#'}" oninput="updateProp('${b.id}','btn2Url',this.value)"></div>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+        ` : ''}
+
+        <div class="section-title">Utility Icons</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div class="input-group-row"><label class="label">Search</label><input type="checkbox" ${b.showSearch?'checked':''} onchange="updateProp('${b.id}','showSearch',this.checked)"></div>
+            <div class="input-group-row"><label class="label">User/Login</label><input type="checkbox" ${b.showUser?'checked':''} onchange="updateProp('${b.id}','showUser',this.checked)"></div>
+            <div class="input-group-row"><label class="label">Cart</label><input type="checkbox" ${b.showCart?'checked':''} onchange="updateProp('${b.id}','showCart',this.checked)"></div>
+            <div class="input-group-row"><label class="label">Active Bar</label><input type="checkbox" ${b.showActiveBar?'checked':''} onchange="updateProp('${b.id}','showActiveBar',this.checked)"></div>
+        </div>
+
+        ${b.showSearch || b.showUser || b.showCart ? `
+        <div style="background:var(--bg-surface); padding:12px; border-radius:10px; border:1px solid var(--border); margin-bottom:12px;">
+            <div class="grid-2">
+                 <div class="input-group"><label class="label">Icon Size</label><input type="text" class="input" value="${b.iconSize||'18'}" oninput="updateProp('${b.id}','iconSize',this.value)"></div>
+                 <div class="input-group"><label class="label">Icon Weight</label><input type="text" class="input" value="${b.iconStroke||'2'}" oninput="updateProp('${b.id}','iconStroke',this.value)"></div>
+            </div>
+            <div class="input-group"><label class="label">Icon Color</label><input type="color" class="color-input" value="${b.iconColor||'#000000'}" oninput="updateProp('${b.id}','iconColor',this.value)"></div>
+            
+            ${b.showSearch ? `
+            <div style="border-top:1px solid var(--border); margin-top:10px; padding-top:10px;">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="label">Search Page</label>
+                        <select class="select" onchange="updateProp('${b.id}', 'searchUrl', this.value); renderProps();">
+                            ${pageOptions(b.searchUrl)}
+                        </select>
+                    </div>
+                    <div class="input-group"><label class="label">Manual URL</label><input type="text" class="input" value="${b.searchUrl||'#'}" oninput="updateProp('${b.id}', 'searchUrl', this.value)"></div>
+                </div>
+                <div class="input-group"><label class="label">Search Placeholder</label><input type="text" class="input" value="${b.searchPlaceholder||'Search...'}" oninput="updateProp('${b.id}', 'searchPlaceholder', this.value)"></div>
+            </div>` : ''}
+
+            ${b.showUser ? `
+            <div style="border-top:1px solid var(--border); margin-top:10px; padding-top:10px;">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label class="label">Account Page</label>
+                        <select class="select" onchange="updateProp('${b.id}', 'userUrl', this.value); renderProps();">
+                            ${pageOptions(b.userUrl)}
+                        </select>
+                    </div>
+                    <div class="input-group"><label class="label">Manual URL</label><input type="text" class="input" value="${b.userUrl||'#'}" oninput="updateProp('${b.id}', 'userUrl', this.value)"></div>
+                </div>
+            </div>` : ''}
+
+            ${b.showCart ? `
+            <div style="border-top:1px solid var(--border); margin-top:10px; padding-top:10px;">
+                <div class="grid-2">
+                    <div class="input-group"><label class="label">Badge Bg</label><input type="color" class="color-input" value="${b.badgeBg||'#ef4444'}" oninput="updateProp('${b.id}', 'badgeBg', this.value)"></div>
+                    <div class="input-group"><label class="label">Badge Text</label><input type="color" class="color-input" value="${b.badgeColor||'#ffffff'}" oninput="updateProp('${b.id}', 'badgeColor', this.value)"></div>
+                </div>
+                <div class="grid-2" style="margin-top:8px;">
+                    <div class="input-group">
+                        <label class="label">Cart Page</label>
+                        <select class="select" onchange="updateProp('${b.id}', 'cartUrl', this.value); renderProps();">
+                            ${pageOptions(b.cartUrl)}
+                        </select>
+                    </div>
+                    <div class="input-group"><label class="label">Manual URL</label><input type="text" class="input" value="${b.cartUrl||'#'}" oninput="updateProp('${b.id}', 'cartUrl', this.value)"></div>
+                </div>
+                <div class="input-group"><label class="label">Cart Count</label><input type="text" class="input" value="${b.cartCount||'0'}" oninput="updateProp('${b.id}', 'cartCount', this.value)"></div>
+            </div>` : ''}
+        </div>
+        ` : ''}
+
+        <div class="section-title">Colors & Style</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Base Background</label><input type="color" class="color-input" value="${b.bg||'#ffffff'}" oninput="updateProp('${b.id}','bg',this.value)"></div>
+            <div class="input-group"><label class="label">Base Text</label><input type="color" class="color-input" value="${b.color||'#0a0a0a'}" oninput="updateProp('${b.id}','color',this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Link Primary</label><input type="color" class="color-input" value="${b.linkColor||'#0a0a0a'}" oninput="updateProp('${b.id}','linkColor',this.value)"></div>
+            <div class="input-group"><label class="label">Link Active</label><input type="color" class="color-input" value="${b.activeColor||'#7c3aed'}" oninput="updateProp('${b.id}','activeColor',this.value)"></div>
+        </div>
+        ${style === 'gradient' ? `
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Grad Start</label><input type="color" class="color-input" value="${b.gradStart||'#7c3aed'}" oninput="updateProp('${b.id}','gradStart',this.value)"></div>
+            <div class="input-group"><label class="label">Grad End</label><input type="color" class="color-input" value="${b.gradEnd||'#2563eb'}" oninput="updateProp('${b.id}','gradEnd',this.value)"></div>
+        </div>` : ''}
+        ${style === 'glass' ? `<div class="input-group"><label class="label">Glass Opacity (0–1)</label><input type="range" min="0" max="1" step="0.05" value="${b.glassOpacity||'0.75'}" oninput="updateProp('${b.id}','glassOpacity',parseFloat(this.value))"></div>` : ''}
+        ${style === 'bordered' || style === 'floating' ? `
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Border Color</label><input type="color" class="color-input" value="${b.borderColor||'#0a0a0a'}" oninput="updateProp('${b.id}','borderColor',this.value)"></div>
+            <div class="input-group"><label class="label">Outer Radius</label><input type="text" class="input" value="${b.outerRadius||'16px'}" oninput="updateProp('${b.id}','outerRadius',this.value)"></div>
+        </div>` : ''}
+
+        <div class="section-title">Behavior & Spacing</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div class="input-group-row"><label class="label">Sticky Nav</label><input type="checkbox" ${b.sticky?'checked':''} onchange="updateProp('${b.id}','sticky',this.checked)"></div>
+            <div class="input-group-row"><label class="label">Transparent</label><input type="checkbox" ${b.transparent?'checked':''} onchange="updateProp('${b.id}','transparent',this.checked)"></div>
+            <div class="input-group-row"><label class="label">Full Width</label><input type="checkbox" ${b.fullWidth?'checked':''} onchange="updateProp('${b.id}','fullWidth',this.checked)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Link Size</label><input type="text" class="input" value="${b.linkSize||'0.9rem'}" placeholder="0.9rem" oninput="updateProp('${b.id}','linkSize',this.value)"></div>
+            <div class="input-group"><label class="label">Link Weight</label><input type="text" class="input" value="${b.linkWeight||'500'}" placeholder="500" oninput="updateProp('${b.id}','linkWeight',this.value)"></div>
+        </div>
+        <div class="input-group"><label class="label">Link Horizontal Gap</label><input type="text" class="input" value="${b.linkGap||'28px'}" placeholder="28px" oninput="updateProp('${b.id}','linkGap',this.value)"></div>
+    `;
+}
+
+function updateNavLink(id, idx, key, val) {
+    const b = blocks.find(x => x.id === id);
+    if (!b) return;
+    if (!b.links) b.links = [
+        { label:'Home', url:'/', hasDropdown:false },
+        { label:'Features', url:'#features', hasDropdown:false },
+        { label:'Pricing', url:'#pricing', hasDropdown:false },
+        { label:'About', url:'#about', hasDropdown:false },
+    ];
+    b.links[idx][key] = val;
+    renderCanvas(); scheduleSave();
+}
+
+function addNavLink(id) {
+    const b = blocks.find(x => x.id === id);
+    if (!b) return;
+    if (!b.links) b.links = [];
+    b.links.push({ label: 'New Link', url: '#', hasDropdown: false });
+    render(); scheduleSave();
+}
+
+function removeNavLink(id, idx) {
+    const b = blocks.find(x => x.id === id);
+    if (!b || !b.links) return;
+    b.links.splice(idx, 1);
+    render(); scheduleSave();
+}
+
+function updateNavTopLink(id, idx, key, val) {
+    const b = blocks.find(x => x.id === id);
+    if (!b) return;
+    if (!b.topLinks) b.topLinks = [
+        { label:'Support', url:'#' },
+        { label:'Log In', url:'#' },
+        { label:'Language', url:'#' }
+    ];
+    b.topLinks[idx][key] = val;
+    renderCanvas(); scheduleSave();
+}
+
+function addNavTopLink(id) {
+    const b = blocks.find(x => x.id === id);
+    if (!b) return;
+    if (!b.topLinks) b.topLinks = [
+        { label:'Support', url:'#' },
+        { label:'Log In', url:'#' },
+        { label:'Language', url:'#' }
+    ];
+    b.topLinks.push({ label: 'New Link', url: '#' });
+    render(); scheduleSave();
+}
+
+function removeNavTopLink(id, idx) {
+    const b = blocks.find(x => x.id === id);
+    if (!b || !b.topLinks) return;
+    b.topLinks.splice(idx, 1);
+    render(); scheduleSave();
+}

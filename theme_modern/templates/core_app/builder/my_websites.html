@@ -1,0 +1,400 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}My Websites{% endblock %}
+{% block nav_websites %}text-white bg-slate-800/50{% endblock %}
+{% block icon_websites %}text-indigo-400{% endblock %}
+{% block page_title %}<div class="flex items-center gap-3"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" class="text-indigo-500" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> My Websites</div>{% endblock %}
+{% block page_subtitle %}Create, edit and publish your websites{% endblock %}
+{% block meta_desc %}Manage all your websites. Build, edit, preview and publish with our drag-and-drop builder.{% endblock %}
+
+{% block page_actions %}
+<button onclick="openSiteWizard()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all duration-300">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Website
+</button>
+{% endblock %}
+
+{% block content %}
+
+<!-- Smart Best Practices Checklist -->
+<div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-8 mt-4">
+    <h3 class="text-[13px] font-bold text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span>📋</span> Website Success Checklist
+    </h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div class="flex items-start gap-2.5 text-[13px] font-medium text-slate-400"><span class="text-indigo-500 font-bold shrink-0">✓</span><span>Set a clear <strong class="text-slate-300 pointer-events-none">H1 headline</strong> in your Hero block</span></div>
+        <div class="flex items-start gap-2.5 text-[13px] font-medium text-slate-400"><span class="text-indigo-500 font-bold shrink-0">✓</span><span>Add a <strong class="text-slate-300 pointer-events-none">CTA button</strong> (Sign Up, Buy Now) above the fold</span></div>
+        <div class="flex items-start gap-2.5 text-[13px] font-medium text-slate-400"><span class="text-indigo-500 font-bold shrink-0">✓</span><span>Fill in the <strong class="text-slate-300 pointer-events-none">SEO Title & Meta Description</strong></span></div>
+        <div class="flex items-start gap-2.5 text-[13px] font-medium text-slate-400"><span class="text-indigo-500 font-bold shrink-0">✓</span><span>Use <strong class="text-slate-300 pointer-events-none">clean URL slugs</strong> — e.g., <code>about-us</code></span></div>
+        <div class="flex items-start gap-2.5 text-[13px] font-medium text-slate-400"><span class="text-indigo-500 font-bold shrink-0">✓</span><span>Preview on <strong class="text-slate-300 pointer-events-none">mobile</strong> before publishing</span></div>
+        <div class="flex items-start gap-2.5 text-[13px] font-medium text-slate-400"><span class="text-indigo-500 font-bold shrink-0">✓</span><span>For e-commerce: enable the <strong class="text-slate-300 pointer-events-none">Loyalty Rewards</strong> plugin</span></div>
+    </div>
+</div>
+
+{% if websites %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    {% for site in websites %}
+    <div class="group bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden transition-all duration-300 hover:translate-y-[-4px] hover:border-indigo-500/50 hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)] flex flex-col">
+        <div class="h-[140px] flex items-center justify-center bg-slate-900/60 border-b border-slate-700/50 text-indigo-500 group-hover:bg-slate-900/80 transition-colors">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <div class="p-6 flex flex-col flex-grow">
+            <div class="font-sans font-bold text-lg text-white mb-1 tracking-tight">{{ site.name }}</div>
+            <div class="text-[13px] font-medium text-slate-400 mb-6 flex items-center gap-2">
+                Created {{ site.created_at|date:"M d, Y" }} <span class="w-1 h-1 rounded-full bg-slate-600"></span> 
+                {% if site.published %}<span class="text-emerald-400 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Published</span>{% else %}<span class="text-amber-400 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full border border-amber-500"></span> Draft</span>{% endif %}
+            </div>
+            
+            <div class="mt-auto flex flex-wrap gap-2.5">
+                {% with page=site.pages.first %}
+                {% if page %}
+                <a href="{% url 'builder' site.id page.id %}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit
+                </a>
+                <a href="{% url 'preview_site' site.id page.id %}" target="_blank" class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 border border-slate-600 hover:border-slate-500 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Preview
+                </a>
+                <a href="{% url 'export_site_docker' site.id %}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 border border-slate-600 hover:border-slate-500 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors" title="Export as Docker Container">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export
+                </a>
+                <button onclick="setDomain('{{ site.id }}', '{% if site.custom_domain %}{{ site.custom_domain|escapejs }}{% endif %}')" class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 border border-slate-600 hover:border-slate-500 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Domain
+                </button>
+                <form action="{% url 'delete_website' site.id %}" method="POST" class="inline m-0" onsubmit="return confirm('Are you sure you want to delete this website? This cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 border border-red-500/20 hover:bg-red-500/10 text-rose-400 rounded-lg text-xs font-bold transition-colors">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete
+                    </button>
+                </form>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Simplified New Website Card -->
+    <div class="bg-indigo-900/10 border-2 border-dashed border-indigo-500/30 rounded-2xl overflow-hidden hover:border-indigo-500/60 hover:bg-indigo-900/20 transition-all duration-300 cursor-pointer flex flex-col items-center justify-center min-h-[300px] group" onclick="openSiteWizard()">
+        <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-110 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="font-sans font-bold text-lg text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">Create New Project</div>
+        <div class="text-[13px] font-medium text-slate-400">Start with a blank canvas</div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-24 px-6 bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-3xl shadow-sm border-dashed">
+    <div class="w-20 h-20 bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-6 text-indigo-400 shadow-inner">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </div>
+    <h3 class="text-2xl font-sans font-bold text-white mb-3">No projects yet</h3>
+    <p class="text-slate-400 mb-8 max-w-sm mx-auto font-medium">Launch your first professional website in seconds with our optimized templates.</p>
+    <button onclick="openSiteWizard()" class="inline-flex items-center gap-2 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)]">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Project
+    </button>
+</div>
+{% endif %}
+
+<!-- Multi-Step Wizard Modal -->
+<div id="wizardModal" class="fixed inset-0 z-[1000] hidden items-center justify-center px-4" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeSiteWizard()"></div>
+    <div class="relative bg-slate-800 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-4xl transform transition-all max-h-[90vh] flex flex-col">
+        <div class="p-6 md:p-8 border-b border-slate-700/50 shrink-0">
+            <h2 id="wizardTitle" class="text-xl md:text-2xl font-sans font-bold text-white tracking-tight flex items-center gap-3">✨ Choose a Template Category</h2>
+            <p id="wizardDesc" class="text-slate-400 text-sm mt-1.5 font-medium">Select the type of website you want to build</p>
+            
+            <div class="flex gap-2 mt-6">
+                <div id="dot1" class="w-6 h-2 rounded-full bg-indigo-500 transition-all duration-300"></div>
+                <div id="dot2" class="w-2 h-2 rounded-full bg-slate-700 transition-all duration-300"></div>
+                <div id="dot3" class="w-2 h-2 rounded-full bg-slate-700 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <form id="createForm" action="{% url 'create_website' %}" method="POST" class="flex flex-col min-h-0">
+            {% csrf_token %}
+            <input type="hidden" name="category" id="categoryInput" value="blank">
+            <input type="hidden" name="template" id="templateInput" value="blank">
+            
+            <div class="overflow-y-auto p-6 md:p-8 custom-scrollbar">
+                <!-- STEP 1: Categories -->
+                <div id="step1" class="wizard-step block">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Common Categories</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'ecommerce', 'E-commerce')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">E-commerce</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">Digital storefronts</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'business', 'Business/Corporate')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Business</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">Corporate presence</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'portfolio', 'Portfolio')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Portfolio</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">Creative showcase</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'blog', 'Blog')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2-2.1L.4 2l2.4 2.4L-.4 9.1M22 2.1l1.6-.1-2.4-2.4 3.2-4.7M2 19.9l-1.6.1 2.4 2.4-3.2 4.7M22 19.9l1.6.1-2.4 2.4 3.2 4.7M16 2v20M8 2v20M2 16h20M2 8h20"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Blog</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">Editorial publisher</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'educational', 'Educational')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Educational</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">LMS & courses</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'landing', 'Landing Page')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Landing Page</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">High conversion</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'media', 'News/Media')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path><path d="M18 14h-8"></path><path d="M15 18h-5"></path><path d="M10 6h8v4h-8V6Z"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Media/News</div>
+                            <div class="text-[11px] text-slate-400 font-medium leading-tight">Live publications</div>
+                        </div>
+                    </div>
+
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Specialized Categories</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'social', 'Community')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Community</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'directory', 'Directory')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Directory</div>
+                        </div>
+                        <div class="cat-card group flex flex-col items-center justify-center p-4 rounded-xl bg-slate-900/50 border border-slate-700 hover:border-indigo-500 hover:bg-slate-800/80 cursor-pointer transition-all text-center" onclick="selectCategory(this, 'nonprofit', 'Non-Profit')">
+                            <div class="text-indigo-400 mb-3 group-hover:scale-110 transition-transform"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div>
+                            <div class="font-bold text-white text-sm mb-1">Non-Profit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Templates -->
+                <div id="step2" class="wizard-step hidden">
+                    <div id="templateGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Templates will be managed directly in the DOM using class filters -->
+                        {% for db_tpl in templates %}
+                        <div class="tpl-card group relative rounded-xl overflow-hidden border border-slate-700 cursor-pointer hover:border-indigo-500 transition-all bg-slate-900/50" data-cat="{{ db_tpl.category|lower }}" onclick="selectTemplate(this, '{{ db_tpl.key }}', '{{ db_tpl.name|escapejs }}')">
+                            <div class="h-32 bg-slate-800 relative">
+                                {% if db_tpl.thumbnail_url %}<img src="{{ db_tpl.thumbnail_url }}" class="w-full h-full object-cover">
+                                {% else %}<div class="w-full h-full flex items-center justify-center text-slate-500">🌅</div>{% endif %}
+                                <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/20 transition-colors"></div>
+                                <span class="absolute top-2 right-2 bg-slate-900/80 text-indigo-400 font-bold text-[10px] uppercase tracking-wider px-2 py-1 rounded-md backdrop-blur-md">{{ db_tpl.category|upper }}</span>
+                                <div class="tpl-check absolute top-2 left-2 hidden items-center justify-center w-6 h-6 rounded-full bg-indigo-500 text-white shadow-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                            <div class="p-4 border-t border-slate-700">
+                                <div class="font-bold text-white text-[15px]">{{ db_tpl.name }}</div>
+                                <div class="text-xs text-slate-400 mt-1">{{ db_tpl.description|truncatechars:40 }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <div class="tpl-card group relative rounded-xl overflow-hidden border border-slate-700 cursor-pointer hover:border-indigo-500 transition-all bg-slate-900/50" data-cat="ecommerce" onclick="selectTemplate(this, 'tpl_ecom_1', 'Stellar Store')">
+                            <div class="h-32 bg-slate-800 relative"><img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/20 transition-colors"></div>
+                                <span class="absolute top-2 right-2 bg-slate-900/80 text-indigo-400 font-bold text-[10px] uppercase tracking-wider px-2 py-1 rounded-md backdrop-blur-md">E-Commerce</span>
+                                <div class="tpl-check absolute top-2 left-2 hidden items-center justify-center w-6 h-6 rounded-full bg-indigo-500 text-white shadow-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                            <div class="p-4 border-t border-slate-700">
+                                <div class="font-bold text-white text-[15px]">Stellar Store</div>
+                                <div class="text-xs text-slate-400 mt-1">Modern tech & gadgets</div>
+                            </div>
+                        </div>
+                        <div class="tpl-card group relative rounded-xl overflow-hidden border border-slate-700 cursor-pointer hover:border-indigo-500 transition-all bg-slate-900/50" data-cat="ecommerce" onclick="selectTemplate(this, 'tpl_ecom_2', 'Vogue Threads')">
+                            <div class="h-32 bg-slate-800 relative"><img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/20 transition-colors"></div>
+                                <span class="absolute top-2 right-2 bg-slate-900/80 text-indigo-400 font-bold text-[10px] uppercase tracking-wider px-2 py-1 rounded-md backdrop-blur-md">E-Commerce</span>
+                                <div class="tpl-check absolute top-2 left-2 hidden items-center justify-center w-6 h-6 rounded-full bg-indigo-500 text-white shadow-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                            <div class="p-4 border-t border-slate-700"><div class="font-bold text-white text-[15px]">Vogue Threads</div><div class="text-xs text-slate-400 mt-1">Fashion & apparel</div></div>
+                        </div>
+                         <!-- Example of generic fallback for short file sizes. I will leave the templates but refactor structure -->
+                        <div class="tpl-card group relative rounded-xl overflow-hidden border border-slate-700 cursor-pointer hover:border-indigo-500 transition-all bg-slate-900/50" data-cat="business" onclick="selectTemplate(this, 'tpl_biz_1', 'Nexa Consulting')">
+                            <div class="h-32 bg-slate-800 relative"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/20 transition-colors"></div>
+                                <span class="absolute top-2 right-2 bg-slate-900/80 text-indigo-400 font-bold text-[10px] uppercase tracking-wider px-2 py-1 rounded-md backdrop-blur-md">Business</span>
+                                <div class="tpl-check absolute top-2 left-2 hidden items-center justify-center w-6 h-6 rounded-full bg-indigo-500 text-white shadow-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                            <div class="p-4 border-t border-slate-700"><div class="font-bold text-white text-[15px]">Nexa Consulting</div><div class="text-xs text-slate-400 mt-1">Professional services</div></div>
+                        </div>
+
+                        <div class="tpl-card blank-tpl group relative rounded-xl overflow-hidden border border-slate-700 cursor-pointer hover:border-indigo-500 transition-all bg-slate-900/50" onclick="selectTemplate(this, 'blank', 'Blank Canvas')">
+                            <div class="h-32 bg-slate-800/50 relative flex items-center justify-center text-slate-500">
+                                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                                <span class="absolute top-2 right-2 bg-slate-900/80 text-slate-300 font-bold text-[10px] uppercase tracking-wider px-2 py-1 rounded-md backdrop-blur-md">Core</span>
+                                <div class="tpl-check absolute top-2 left-2 hidden items-center justify-center w-6 h-6 rounded-full bg-indigo-500 text-white shadow-lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                            <div class="p-4 border-t border-slate-700"><div class="font-bold text-white text-[15px]">Blank Canvas</div><div class="text-xs text-slate-400 mt-1">Start from scratch</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Name Input -->
+                <div id="step3" class="wizard-step hidden">
+                    <div class="py-10 max-w-xl mx-auto">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Website Name</label>
+                        <input type="text" name="name" id="siteNameInput" class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all mb-4" placeholder="e.g. My Portfolio" required>
+                        
+                        <div class="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-semibold px-4 py-2 rounded-lg text-sm mb-6">
+                            Template: <span id="selectedCatDisplay" class="text-white">Blank</span>
+                        </div>
+                        
+                        <p class="text-sm text-slate-400 font-medium leading-relaxed">
+                            We will set up your project optimized for this category. You can customize everything inside the builder.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-slate-700/50 bg-slate-900/30 flex items-center justify-end gap-3 shrink-0">
+                <button type="button" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-700/50 hover:text-white transition-colors" onclick="handleBackAction()" id="btnBack">Cancel</button>
+                <button type="button" class="px-7 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:bg-slate-700 disabled:text-slate-400 text-white text-sm font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.2)]" onclick="handleNextAction()" id="btnNext" disabled>Next Step</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Utilities specifically for the JS interactions */
+.cat-card.selected { border-color: #6366f1; background-color: rgba(99,102,241,0.1); }
+.tpl-card.selected { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.5); }
+.tpl-card.selected .tpl-check { display: flex; }
+</style>
+
+<script>
+    let currentStep = 1;
+    let currentCat = '';
+    let currentTpl = '';
+    
+    function openSiteWizard() {
+        document.getElementById('wizardModal').classList.remove('hidden');
+        document.getElementById('wizardModal').classList.add('flex');
+        showStep(1);
+    }
+
+    function closeSiteWizard() {
+        document.getElementById('wizardModal').classList.add('hidden');
+        document.getElementById('wizardModal').classList.remove('flex');
+        document.getElementById('createForm').reset();
+        document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('selected'));
+        currentCat = '';
+        currentTpl = '';
+        updateButtonState();
+    }
+
+    function selectCategory(el, catId, catName) {
+        document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        currentCat = catId;
+        document.getElementById('categoryInput').value = catId;
+        updateButtonState();
+    }
+
+    function selectTemplate(el, tplId, tplName) {
+        document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        currentTpl = tplId;
+        document.getElementById('templateInput').value = tplId;
+        document.getElementById('selectedCatDisplay').innerText = tplName;
+        updateButtonState();
+    }
+
+    function filterTemplates(catId) {
+        document.querySelectorAll('.tpl-card').forEach(c => {
+            if (c.getAttribute('data-cat') === catId || c.classList.contains('blank-tpl')) {
+                c.style.display = 'block';
+            } else {
+                c.style.display = 'none';
+            }
+        });
+    }
+
+    function updateButtonState() {
+        const btn = document.getElementById('btnNext');
+        if (currentStep === 1) {
+            btn.disabled = !currentCat;
+            btn.innerText = "Next Step";
+        } else if (currentStep === 2) {
+            btn.disabled = !currentTpl;
+            btn.innerText = "Next Step";
+        } else if (currentStep === 3) {
+            btn.disabled = false;
+            btn.innerText = "Create Project";
+        }
+    }
+
+    function handleBackAction() {
+        if (currentStep === 1) closeSiteWizard();
+        else showStep(currentStep - 1);
+    }
+
+    function handleNextAction() {
+        if (currentStep === 1 && currentCat) showStep(2);
+        else if (currentStep === 2 && currentTpl) showStep(3);
+        else if (currentStep === 3) document.getElementById('createForm').submit();
+    }
+
+    function showStep(step) {
+        currentStep = step;
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step3').classList.add('hidden');
+        document.getElementById('step1').classList.remove('block');
+        document.getElementById('step2').classList.remove('block');
+        document.getElementById('step3').classList.remove('block');
+        
+        document.getElementById('dot1').className = "w-2 h-2 rounded-full bg-slate-700 transition-all duration-300";
+        document.getElementById('dot2').className = "w-2 h-2 rounded-full bg-slate-700 transition-all duration-300";
+        document.getElementById('dot3').className = "w-2 h-2 rounded-full bg-slate-700 transition-all duration-300";
+        document.getElementById('btnBack').innerText = "Back";
+        
+        if (step === 1) {
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('step1').classList.add('block');
+            document.getElementById('wizardTitle').innerText = '✨ Choose a Category';
+            document.getElementById('wizardDesc').innerText = 'Select the functional category for your website';
+            document.getElementById('dot1').className = "w-6 h-2 rounded-full bg-indigo-500 transition-all duration-300";
+            document.getElementById('btnBack').innerText = "Cancel";
+        } else if (step === 2) {
+            filterTemplates(currentCat);
+            document.getElementById('step2').classList.remove('hidden');
+            document.getElementById('step2').classList.add('block');
+            document.getElementById('wizardTitle').innerText = '🎨 Choose a Template';
+            document.getElementById('wizardDesc').innerText = 'Pick a starting design for your website';
+            document.getElementById('dot1').className = "w-2 h-2 rounded-full bg-indigo-500 transition-all duration-300";
+            document.getElementById('dot2').className = "w-6 h-2 rounded-full bg-indigo-500 transition-all duration-300";
+            currentTpl = '';
+            document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('selected'));
+        } else if (step === 3) {
+            document.getElementById('step3').classList.remove('hidden');
+            document.getElementById('step3').classList.add('block');
+            document.getElementById('wizardTitle').innerText = '⚡ Name your Project';
+            document.getElementById('wizardDesc').innerText = 'Give your new website a clean name';
+            document.getElementById('dot1').className = "w-2 h-2 rounded-full bg-indigo-500 transition-all duration-300";
+            document.getElementById('dot2').className = "w-2 h-2 rounded-full bg-indigo-500 transition-all duration-300";
+            document.getElementById('dot3').className = "w-6 h-2 rounded-full bg-indigo-500 transition-all duration-300";
+            setTimeout(() => document.getElementById('siteNameInput').focus(), 100);
+        }
+        updateButtonState();
+    }
+
+    function setDomain(siteId, currentDomain) {
+        let domain = prompt("Enter custom domain (e.g., www.example.com):", currentDomain);
+        if (domain !== null) {
+            window.location.href = "/builder/" + siteId + "/set-domain/?domain=" + encodeURIComponent(domain);
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (window.location.search.includes('action=new')) {
+            openSiteWizard();
+        }
+    });
+</script>
+{% endblock %}

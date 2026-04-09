@@ -1,0 +1,61 @@
+/* Embed Block: Generic iframe embed for Spotify, YouTube, etc. */
+function renderEmbed(b, isMobile, isTablet) {
+    const isSmall = isMobile || isTablet;
+    const code = b.code || '<iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM3M" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+    
+    let bgStyle = `background:${b.bg||'#ffffff'};`;
+    if (b.useGradient && b.bg2) bgStyle = `background: linear-gradient(135deg, ${b.bg}, ${b.bg2});`;
+
+    const frameStyles = {
+        none: '',
+        glass: 'padding:20px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(24px);',
+        shadow: 'box-shadow:0 40px 100px -20px rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.03);'
+    };
+
+    return `
+        <div style="${bgStyle} padding:${b.pTop||'100px'} 24px ${b.pBottom||'100px'}; transition:all 0.4s;">
+            <div style="max-width:${b.maxWidth||'900px'}; margin:0 auto; width:100%; transition:all 0.4s; overflow:hidden; border-radius:${b.borderRadius||'32px'}; ${frameStyles[b.frameDesign||'shadow']} position:relative; min-height:${b.minHeight||'100px'};">
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                    ${code}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderEmbedProps(b) {
+    return `
+        <div class="section-title" style="margin-top:0;">Content & iFrame Code</div>
+        <div class="input-group">
+            <label class="label">Embed HTML Code</label>
+            <textarea class="textarea" style="height:150px; font-family:monospace; font-size:0.8rem;" oninput="updateProp('code', this.value)">${b.code||''}</textarea>
+        </div>
+        
+        <div class="section-title">Geometric Architecture</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Max Width</label><input type="text" class="input" value="${b.maxWidth||'900px'}" oninput="updateProp('maxWidth', this.value)"></div>
+            <div class="input-group"><label class="label">Min Height</label><input type="text" class="input" value="${b.minHeight||'100px'}" oninput="updateProp('minHeight', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">Corner Scale</label><input type="text" class="input" value="${b.borderRadius||'32px'}" oninput="updateProp('borderRadius', this.value)"></div>
+            <div class="input-group">
+                <label class="label">Frame Design</label>
+                <select class="select" onchange="updateProp('frameDesign', this.value)">
+                    <option value="shadow" ${b.frameDesign==='shadow'?'selected':''}>High Contrast Shadow</option>
+                    <option value="glass" ${b.frameDesign==='glass'?'selected':''}>Glass Neutral</option>
+                    <option value="none" ${b.frameDesign==='none'?'selected':''}>Raw Flat</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section-title">Section Visual System</div>
+        <div class="grid-2">
+            <div class="input-group"><label class="label">BG Base</label><input type="color" class="color-input" value="${b.bg||'#ffffff'}" oninput="updateProp('bg', this.value)"></div>
+            <div class="input-group"><label class="label">BG Depth</label><input type="color" class="color-input" value="${b.bg2||'#f8fafc'}" oninput="updateProp('bg2', this.value)"></div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group-row" style="margin-top:1.5rem;"><label class="label">Use Gradient</label><input type="checkbox" ${b.useGradient?'checked':''} onchange="updateProp('useGradient', this.checked)"></div>
+            <div class="input-group"><label class="label">Top Pad</label><input type="text" class="input" value="${b.pTop||'100px'}" oninput="updateProp('pTop', this.value)"></div>
+        </div>
+    `;
+}

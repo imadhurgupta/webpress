@@ -1,0 +1,50 @@
+{% extends 'core_app/layouts/base_dashboard.html' %}
+{% block title %}Manage Domains{% endblock %}
+{% block nav_admin_domains %}text-white bg-slate-800/50{% endblock %}
+{% block icon_admin_domains %}text-indigo-400{% endblock %}
+{% block page_title %}Custom Domains{% endblock %}
+{% block page_subtitle %}Review global custom domain mappings across all users.{% endblock %}
+
+{% block content %}
+<div class="bg-slate-800/40 border border-slate-700/50 rounded-3xl overflow-hidden mt-6 shadow-2xl">
+    <div class="px-6 py-4 bg-slate-900/50 border-b border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h3 class="font-bold text-white flex items-center gap-2">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" class="text-indigo-400"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            Domain Mappings
+        </h3>
+        <div class="relative">
+            <input type="text" placeholder="Search domains..." class="w-full md:w-64 px-4 py-2 bg-slate-950/50 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+                <tr class="bg-slate-900/50 border-b border-slate-700/50 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    <th class="p-4">Domain</th>
+                    <th class="p-4">Project</th>
+                    <th class="p-4">Owner</th>
+                    <th class="p-4 text-right">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/50 text-sm">
+                {% for site in websites %}
+                <tr class="hover:bg-slate-800/60 transition-colors">
+                    <td class="p-4 font-mono font-semibold text-indigo-400">{{ site.custom_domain }}</td>
+                    <td class="p-4 text-white font-medium">{{ site.name }} <span class="text-xs text-slate-500 block">/{{ site.slug }}</span></td>
+                    <td class="p-4 text-slate-400">{{ site.user.username }}</td>
+                    <td class="p-4 text-right">
+                        {% if site.published %}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-bold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live</span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-bold"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Offline</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="p-8 text-center text-slate-500">No custom domains mapped yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

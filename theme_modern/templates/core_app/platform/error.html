@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ code }} | {{ title }} | WebPress</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'favicon.ico' %}">
+    
+    <script src="https://unpkg.com/htmx.org@1.9.11" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Inter', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: { 900: '#0f172a', 800: '#1e293b', 700: '#334155' },
+                        primary: '#6366f1',
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-300 font-body antialiased min-h-screen flex items-center justify-center p-4 relative overflow-hidden" hx-boost="true">
+    
+    <!-- Background Effects -->
+    <div class="fixed inset-0 z-[-1] pointer-events-none">
+        <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/30 via-slate-900 to-slate-900"></div>
+        <div class="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-red-600/10 blur-[120px] rounded-full mix-blend-screen"></div>
+        <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/10 blur-[120px] rounded-full mix-blend-screen"></div>
+    </div>
+
+    <!-- Error Container -->
+    <div class="w-full max-w-2xl z-10 text-center px-4 animate-fade-in-up py-8">
+        <div class="font-sans font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-400 leading-none mb-6 text-[clamp(6rem,15vw,12rem)] tracking-tighter drop-shadow-sm">
+            {{ code }}
+        </div>
+        
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-sans font-bold text-white tracking-tight mb-4 drop-shadow-sm">{{ title }}</h1>
+        <p class="text-slate-400 text-lg max-w-md mx-auto mb-10 leading-relaxed font-medium">{{ message }}</p>
+        
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            <a href="/" class="inline-flex items-center gap-3 px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:-translate-y-0.5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Go Home
+            </a>
+            
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-3 px-8 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm border border-slate-700/50 text-white font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}" class="inline-flex items-center gap-3 px-8 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-sm border border-slate-700/50 text-white font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                Log In
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
